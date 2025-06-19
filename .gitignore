@@ -1,0 +1,5 @@
+# Node modules and sensitive files
+node_modules/
+.env
+*.log
+.DS_Store
