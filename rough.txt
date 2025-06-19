@@ -1,0 +1,6 @@
+DB:
+user: "postgres",                   // from Navicat connection
+host: "localhost",                 
+database: "PulsePointDBProject",    // ✅ use your new DB
+password: "your_password",          // ✅ same as in Navicat
+port: 5432,
