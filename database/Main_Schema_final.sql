@@ -51,8 +51,8 @@ CREATE TABLE patient (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- FAVORITE_DOCTORS
-CREATE TABLE favorite_doctors (
+-- BOOKMARKED_DOCTORS
+CREATE TABLE bookmarked_doctors (
     id SERIAL PRIMARY KEY,
     patient_id INTEGER REFERENCES patient(patient_id) ON DELETE CASCADE,
     doctor_id INTEGER REFERENCES doctor(doctor_id) ON DELETE CASCADE,
@@ -173,7 +173,7 @@ CREATE TABLE payments (
     appointment_id INTEGER REFERENCES appointment(appointment_id),
     amount NUMERIC(10,2),
     payment_method VARCHAR(50), -- e.g., "card", "bkash", "nagad"
-    payment_status VARCHAR(20) CHECK (payment_status IN ('pending', 'success', 'failed', 'canceled', 'refunded')),
+    payment_status VARCHAR(20) DEFAULT 'pending' CHECK (payment_status IN ('pending', 'success', 'failed', 'canceled', 'refunded')),
     transaction_id VARCHAR(100),
     paid_time TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
