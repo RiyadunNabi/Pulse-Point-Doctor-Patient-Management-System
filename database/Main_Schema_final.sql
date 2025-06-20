@@ -251,7 +251,8 @@ CREATE TABLE medical_documents (
     description TEXT,
     last_checkup_date DATE,
     upload_date DATE DEFAULT CURRENT_DATE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- DISEASE

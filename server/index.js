@@ -25,7 +25,10 @@ const prescriptionFileRoutes = require("./routes/prescriptionFileRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const bookmarkedDoctorRoutes = require('./routes/bookmarkedDoctorRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
-
+const healthLogRoutes = require("./routes/healthLogRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+const medicalDocumentRoutes = require("./routes/medicalDocumentRoutes");
+const healthArticleRoutes = require("./routes/healthArticleRoutes");
 
 
 app.use("/api/doctors", doctorRoutes);
@@ -44,6 +47,11 @@ app.use("/api/prescription-files", prescriptionFileRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use('/api/bookmarked-doctors', bookmarkedDoctorRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use("/api/health-logs", healthLogRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/medical-documents", medicalDocumentRoutes);
+app.use("/api/health-articles", healthArticleRoutes);
+
 
 
 app.get("/", async (req, res) => {
