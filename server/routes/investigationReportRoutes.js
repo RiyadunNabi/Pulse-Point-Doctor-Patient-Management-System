@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db/connection");
 
-// ✅ POST: Add report info (mock upload for now)
 router.post("/", async (req, res) => {
   const { prescription_id, investigation_id, file_name, file_type, file_path, notes } = req.body;
 
@@ -21,7 +20,6 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ✅ GET: Reports for a prescription
 router.get("/:prescriptionId", async (req, res) => {
   const { prescriptionId } = req.params;
 

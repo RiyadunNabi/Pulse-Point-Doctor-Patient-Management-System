@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db/connection");
 
-// ✅ GET: All appointments for a doctor
+// GET: All appointments for a doctor
 router.get("/:doctorId", async (req, res) => {
   const doctorId = req.params.doctorId;
 
@@ -24,7 +24,7 @@ router.get("/:doctorId", async (req, res) => {
   }
 });
 
-// ✅ PATCH: Update appointment status
+// PATCH: Update appointment status
 router.patch("/:appointmentId/status", async (req, res) => {
   const { appointmentId } = req.params;
   const { status } = req.body;
@@ -56,7 +56,7 @@ router.patch("/:appointmentId/status", async (req, res) => {
 });
 
 
-// ✅ POST: Book an appointment
+// POST: Book an appointment
 router.post("/", async (req, res) => {
   const { doctor_id, patient_id, appointment_date, appointment_time, reason } = req.body;
 

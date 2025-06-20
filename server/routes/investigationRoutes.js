@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db/connection");
 
-// ✅ Add test to master list
 router.post("/", async (req, res) => {
   const { name, description } = req.body;
 

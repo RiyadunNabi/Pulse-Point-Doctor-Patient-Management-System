@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db/connection");
 
-// ✅ GET all doctors
+// GET all doctors
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query(`
@@ -19,7 +19,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// ✅ POST new doctor
+// POST new doctor
 router.post("/", async (req, res) => {
   const { user_id, department_id, first_name, last_name, gender, phone_no } = req.body;
 

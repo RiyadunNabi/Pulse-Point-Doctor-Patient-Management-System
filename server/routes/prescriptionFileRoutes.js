@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db/connection");
 
-// ✅ POST: Add prescription file info
 router.post("/", async (req, res) => {
   const { prescription_id, file_name, file_type, file_path } = req.body;
 
@@ -21,7 +20,6 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ✅ GET: Get all files for a prescription
 router.get("/:prescriptionId", async (req, res) => {
   const { prescriptionId } = req.params;
 

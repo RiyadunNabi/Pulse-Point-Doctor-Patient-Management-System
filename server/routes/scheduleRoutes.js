@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db/connection");
 
-// ✅ GET: All schedules for a doctor
+// GET: All schedules for a doctor
 router.get("/:doctorId", async (req, res) => {
   const doctorId = req.params.doctorId;
 
@@ -21,7 +21,7 @@ router.get("/:doctorId", async (req, res) => {
   }
 });
 
-// ✅ POST: Add schedule for a doctor
+// POST: Add schedule for a doctor
 router.post("/", async (req, res) => {
   const { doctor_id, weekday, start_time, end_time, max_per_hour, location } = req.body;
 

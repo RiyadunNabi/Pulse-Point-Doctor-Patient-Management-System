@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db/connection");
 
-// ✅ Add a drug to master list
+// Add a drug to master list
 router.post("/", async (req, res) => {
   const { drug_name, dosage_form, strength, additional_notes } = req.body;
 

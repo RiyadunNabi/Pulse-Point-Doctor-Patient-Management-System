@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db/connection");
 
-// ✅ GET all users (just for testing)
+// GET all users (just for testing)
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM \"user\"");
@@ -13,7 +13,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// ✅ POST: Register a new user
+// POST: Register a new user
 router.post("/", async (req, res) => {
   const { username, email, password, role } = req.body;
 

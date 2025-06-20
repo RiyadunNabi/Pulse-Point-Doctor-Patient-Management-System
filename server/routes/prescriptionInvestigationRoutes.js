@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db/connection");
 
-// ✅ Add investigation to a prescription
 router.post("/", async (req, res) => {
   const { prescription_id, investigation_id, notes } = req.body;
 
@@ -20,7 +19,6 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ✅ Get all investigations for a prescription
 router.get("/:prescriptionId", async (req, res) => {
   const { prescriptionId } = req.params;
 
