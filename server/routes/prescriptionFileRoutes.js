@@ -1,38 +1,27 @@
 const express = require("express");
 const router = express.Router();
-const pool = require("../db/connection");
 
-router.post("/", async (req, res) => {
-  const { prescription_id, file_name, file_type, file_path } = req.body;
+// Destructure to get the specific middleware needed for this file type
+const { uploadPrescriptionFile } = require("../middleware/upload"); 
 
-  try {
-    const result = await pool.query(
-      `INSERT INTO prescription_file
-       (prescription_id, file_name, file_type, filepath)
-       VALUES ($1, $2, $3, $4)
-       RETURNING *`,
-      [prescription_id, file_name, file_type, file_path]
-    );
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    console.error("Error saving prescription file:", err);
-    res.status(500).send("Error saving prescription file");
-  }
-});
+const {
+    createPrescriptionFile,
+    getFilesByPrescription,
+    downloadPrescriptionFile,
+    deletePrescriptionFile,
+} = require("../controllers/prescriptionFileController");
 
-router.get("/:prescriptionId", async (req, res) => {
-  const { prescriptionId } = req.params;
 
-  try {
-    const result = await pool.query(
-      `SELECT * FROM prescription_file WHERE prescription_id = $1`,
-      [prescriptionId]
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error fetching prescription files:", err);
-    res.status(500).send("Error fetching prescription files");
-  }
-});
+// Use the correct middleware variable here
+router.post("/", uploadPrescriptionFile.single('prescriptionFile'), createPrescriptionFile);
+
+// Get all file records for a prescription
+router.get("/prescription/:prescriptionId", getFilesByPrescription);
+
+// Download a specific file by its file_id
+router.get("/:id/download", downloadPrescriptionFile);
+
+// Delete a file and its record by its file_id
+router.delete("/:id", deletePrescriptionFile);
 
 module.exports = router;

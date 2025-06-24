@@ -1,79 +1,132 @@
-const pool = require("../db/connection");
+const pool = require('../db/connection');
+const fs = require('fs');
 
-// Create a new medical document record
-exports.createMedicalDocument = async (req, res) => {
-  const { patient_id, file_name, file_path, description, last_checkup_date } = req.body;
-  try {
-    const result = await pool.query(
-      `INSERT INTO medical_documents 
-        (patient_id, file_name, file_path, description, last_checkup_date) 
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING *`,
-      [patient_id, file_name, file_path, description, last_checkup_date]
-    );
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    console.error("Error creating medical document:", err);
-    res.status(500).json({ error: "Failed to create medical document" });
-  }
-};
-
-// Get all docs for a patient
-exports.getDocumentsByPatient = async (req, res) => {
-  const { patient_id } = req.params;
-  try {
-    const result = await pool.query(
-      `SELECT * FROM medical_documents WHERE patient_id = $1 ORDER BY upload_date DESC`,
-      [patient_id]
-    );
-    res.status(200).json(result.rows);
-  } catch (err) {
-    console.error("Error fetching documents:", err);
-    res.status(500).json({ error: "Failed to fetch medical documents" });
-  }
-};
-
-// Delete a medical document by ID
-exports.deleteMedicalDocument = async (req, res) => {
-  const { document_id } = req.params;
-  try {
-    const result = await pool.query(
-      `DELETE FROM medical_documents WHERE document_id = $1 RETURNING *`,
-      [document_id]
-    );
-    if (result.rowCount === 0) {
-      return res.status(404).json({ error: "Document not found" });
+/**
+ * @desc    Upload a new medical document for a patient
+ * @route   POST /api/medical-documents
+ */
+const createMedicalDocument = async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'No document file uploaded.' });
     }
-    res.status(200).json({ message: "Document deleted successfully", document: result.rows[0] });
-  } catch (err) {
-    console.error("Error deleting medical document:", err);
-    res.status(500).json({ error: "Failed to delete medical document" });
-  }
-};
+    const { patient_id, description, last_checkup_date } = req.body;
+    const { originalname, path: filepath } = req.file;
 
-// Update a medical document by ID
-exports.updateMedicalDocument = async (req, res) => {
-  const { document_id } = req.params;
-  const { file_name, file_path, description, last_checkup_date } = req.body;
-  try {
-    const result = await pool.query(
-      `UPDATE medical_documents
-       SET file_name = COALESCE($1, file_name),
-           file_path = COALESCE($2, file_path),
-           description = COALESCE($3, description),
-           last_checkup_date = COALESCE($4, last_checkup_date),
-           updated_at = CURRENT_TIMESTAMP
-       WHERE document_id = $5
-       RETURNING *`,
-      [file_name, file_path, description, last_checkup_date, document_id]
-    );
-    if (result.rowCount === 0) {
-      return res.status(404).json({ error: "Document not found" });
+    if (!patient_id) {
+        return res.status(400).json({ error: 'patient_id is required.' });
     }
-    res.status(200).json({ message: "Document updated successfully", document: result.rows[0] });
-  } catch (err) {
-    console.error("Error updating medical document:", err);
-    res.status(500).json({ error: "Failed to update medical document" });
-  }
+
+    try {
+        const result = await pool.query(
+            `INSERT INTO medical_documents (patient_id, file_name, file_path, description, last_checkup_date)
+             VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+            [patient_id, originalname, filepath, description, last_checkup_date]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (err) {
+        console.error("Error creating medical document:", err);
+        res.status(500).json({ error: "Failed to create medical document" });
+    }
 };
 
+/**
+ * @desc    Get all documents for a specific patient
+ * @route   GET /api/medical-documents/patient/:patientId
+ */
+const getDocumentsByPatient = async (req, res) => {
+    const { patientId } = req.params;
+    try {
+        const result = await pool.query(
+            `SELECT document_id, file_name, description, upload_date FROM medical_documents WHERE patient_id = $1 ORDER BY upload_date DESC`,
+            [patientId]
+        );
+        res.status(200).json(result.rows);
+    } catch (err) {
+        console.error("Error fetching documents:", err);
+        res.status(500).json({ error: "Failed to fetch medical documents" });
+    }
+};
+
+/**
+ * @desc    Update a medical document's text details
+ * @route   PATCH /api/medical-documents/:id
+ */
+const updateMedicalDocument = async (req, res) => {
+    const { id } = req.params;
+    const { description, last_checkup_date } = req.body;
+    try {
+        const result = await pool.query(
+            `UPDATE medical_documents
+             SET description = COALESCE($1, description),
+                 last_checkup_date = COALESCE($2, last_checkup_date),
+                 updated_at = CURRENT_TIMESTAMP
+             WHERE document_id = $3 RETURNING *`,
+            [description, last_checkup_date, id]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Document not found" });
+        }
+        res.status(200).json(result.rows[0]);
+    } catch (err) {
+        console.error("Error updating medical document:", err);
+        res.status(500).json({ error: "Failed to update medical document" });
+    }
+};
+
+/**
+ * @desc    Download a specific medical document
+ * @route   GET /api/medical-documents/:id/download
+ */
+const downloadMedicalDocument = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query('SELECT file_path FROM medical_documents WHERE document_id = $1', [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Document not found.' });
+        }
+        const filepath = result.rows[0].file_path;
+
+        if (fs.existsSync(filepath)) {
+            res.download(filepath);
+        } else {
+            res.status(404).json({ error: 'File not found on server storage.' });
+        }
+    } catch (err) {
+        console.error("Error downloading document:", err);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+/**
+ * @desc    Delete a medical document and its physical file
+ * @route   DELETE /api/medical-documents/:id
+ */
+const deleteMedicalDocument = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query('DELETE FROM medical_documents WHERE document_id = $1 RETURNING file_path', [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Document not found" });
+        }
+        
+        const filepath = result.rows[0].file_path;
+        if (filepath && fs.existsSync(filepath)) {
+            fs.unlink(filepath, (err) => {
+                if (err) console.error("Error deleting document file:", err);
+            });
+        }
+        
+        res.status(204).send();
+    } catch (err) {
+        console.error("Error deleting medical document:", err);
+        res.status(500).json({ error: "Failed to delete medical document" });
+    }
+};
+
+module.exports = {
+    createMedicalDocument,
+    getDocumentsByPatient,
+    updateMedicalDocument,
+    downloadMedicalDocument,
+    deleteMedicalDocument,
+};
