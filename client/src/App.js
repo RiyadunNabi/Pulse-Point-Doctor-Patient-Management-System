@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import AuthPage from './components/AuthPage';
 import PatientDashboard from './components/PatientDashboard/PatientDashboard';
+import DoctorDashboard from './components/DoctorDashboard/DoctorDashboard';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -12,18 +13,31 @@ function App() {
     const checkAuthStatus = async () => {
       const token = localStorage.getItem('token');
       const userData = localStorage.getItem('user');
-      
+
       console.log('Checking auth status...');
       console.log('Token exists:', !!token);
       console.log('User data exists:', !!userData);
-      
+
       if (token && userData) {
         try {
           const parsedUser = JSON.parse(userData);
           console.log('Parsed user data:', parsedUser);
-          
-          // Validate that user has required fields
-          if (parsedUser && parsedUser.role && parsedUser.patient_id) {
+
+          // ✅ Enhanced validation for both roles
+          console.log('=== STORED USER DATA DEBUG ===');
+          console.log('Stored user object:', parsedUser);
+          console.log('User role:', parsedUser?.role);
+          console.log('Patient ID:', parsedUser?.patient_id);
+          console.log('Doctor ID:', parsedUser?.doctor_id);
+
+          // Validate based on role
+          const isValidUser = parsedUser && parsedUser.role && (
+            (parsedUser.role === 'patient' && parsedUser.patient_id) ||
+            (parsedUser.role === 'doctor' && parsedUser.doctor_id) ||
+            parsedUser.role === 'admin'
+          );
+
+          if (isValidUser) {
             setUser(parsedUser);
             console.log('User authenticated successfully');
           } else {
@@ -49,11 +63,11 @@ function App() {
   }, []);
 
   useEffect(() => {
-  if (user) {
-    localStorage.setItem('token', localStorage.getItem('token') || '');
-    localStorage.setItem('user', JSON.stringify(user));
-  }
-}, [user]);
+    if (user) {
+      localStorage.setItem('token', localStorage.getItem('token') || '');
+      localStorage.setItem('user', JSON.stringify(user));
+    }
+  }, [user]);
 
   // Handle successful login
   // const handleLogin = (token, userData) => {
@@ -62,17 +76,25 @@ function App() {
   // console.log('Token:', token);
   // console.log('User data received:', userData);
   // console.log('Patient ID:', userData?.patient_id);
-    
+
   //   localStorage.setItem('token', token);
   //   localStorage.setItem('user', JSON.stringify(userData));
   //   setUser(userData);
   // };
   // Simplify handleLogin
-const handleLogin = (token, userData) => {
-  localStorage.setItem('token', token);
-  localStorage.setItem('user', JSON.stringify(userData));
-  setUser(userData);
-};
+  const handleLogin = (token, userData) => {
+    // ✅ ADD DEBUGGING CODE HERE
+    console.log('=== LOGIN RESPONSE DEBUG ===');
+    console.log('User object from login:', userData);
+    console.log('User patient_id:', userData?.patient_id);
+    console.log('User patient_id type:', typeof userData?.patient_id);
+    console.log('User patient_id as string:', String(userData?.patient_id));
+    console.log('User patient_id JSON:', JSON.stringify(userData?.patient_id));
+
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
+  };
 
   // Handle logout
   const handleLogout = () => {
@@ -98,41 +120,57 @@ const handleLogin = (token, userData) => {
     <Router>
       <div className="App">
         <Routes>
-          <Route 
-            path="/auth" 
+          <Route
+            path="/auth"
             element={
               user ? (
                 <Navigate to="/dashboard" replace />
               ) : (
                 <AuthPage onLogin={handleLogin} />
               )
-            } 
+            }
           />
-          
+
           <Route 
-            path="/dashboard" 
-            element={
-              user && user.role === 'patient' ? (
+          path="/dashboard" 
+          element={
+            user ? (
+              user.role === 'patient' ? (
                 <PatientDashboard user={user} onLogout={handleLogout} />
+              ) : user.role === 'doctor' ? (
+                <DoctorDashboard user={user} onLogout={handleLogout} />
               ) : (
                 <Navigate to="/auth" replace />
               )
-            } 
-          />
-          
-          <Route 
-            path="/" 
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          } 
+        />
+
+          {/* <Route
+            path="/"
             element={
               user && user.role === 'patient' && user.patient_id ? (
                 <Navigate to="/dashboard" replace />
               ) : (
                 <Navigate to="/auth" replace />
               )
-            } 
-          />
-          
+            }
+          /> */}
           <Route 
-            path="*" 
+          path="/" 
+          element={
+            user ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          } 
+        />
+
+          <Route
+            path="*"
             element={<Navigate to="/auth" replace />}
           />
         </Routes>

@@ -15,6 +15,18 @@ const medicalDocStorage = multer.diskStorage({
         cb(null, 'med-doc-' + Date.now() + path.extname(file.originalname));
     }
 });
+// ✅ Add file filter for medical documents
+const medicalDocFilter = (req, file, cb) => {
+    const allowedTypes = /pdf|doc|docx|jpg|jpeg|png/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+        return cb(null, true);
+    } else {
+        cb(new Error('Invalid file type. Only PDF, DOC, DOCX, JPG, and PNG files are allowed.'));
+    }
+};
 
 // --- Investigation Report Storage ---
 const reportUploadDir = path.join(__dirname, '..', 'uploads', 'investigation_reports');
@@ -59,7 +71,13 @@ const articleImageStorage = multer.diskStorage({
 });
 
 module.exports = {
-    uploadMedicalDoc: multer({ storage: medicalDocStorage }),
+    uploadMedicalDoc: multer({ 
+        storage: medicalDocStorage,
+        limits: {
+            fileSize: 10 * 1024 * 1024 // 10MB limit
+        },
+        fileFilter: medicalDocFilter // ✅ Add file filter
+    }),
     uploadPrescriptionFile: multer({ storage: prescriptionStorage }),
     uploadReport: multer({ storage: investigationReportStorage }),
     uploadArticleImage: multer({ storage: articleImageStorage }),

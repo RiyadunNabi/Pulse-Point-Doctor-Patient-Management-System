@@ -1,40 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Modal from '../../shared/Modal';
-import ProfileForm from './ProfileForm';
-import ProfilePhotoSection from './ProfilePhotoSection';
+import HealthLogForm from './HealthLogForm';
 
-function EditProfileModal({ isOpen, onClose, patient, onUpdate }) {
+function EditHealthLogModal({ isOpen, onClose, patientId, onUpdate, existingLog = null }) {
   const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    gender: '',
-    date_of_birth: '',
-    phone_no: '',
-    address: '',
-    blood_group: '',
-    health_condition: ''
+    weight: '',
+    systolic: '',
+    diastolic: '',
+    heart_rate: '',
+    blood_sugar: '',
+    sleep_hours: '',
+    notes: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Populate form fields when patient changes
+  // Populate form fields when modal opens or existing log changes
   useEffect(() => {
-    if (isOpen && patient) {
-      console.log('Populating form with patient data:', patient);
-      setFormData({
-        first_name: patient.first_name || '',
-        last_name: patient.last_name || '',
-        gender: patient.gender || '',
-        date_of_birth: patient.date_of_birth ? patient.date_of_birth.split('T')[0] : '',
-        phone_no: patient.phone_no || '',
-        address: patient.address || '',
-        blood_group: patient.blood_group || '',
-        health_condition: patient.health_condition || ''
-      });
+    if (isOpen) {
+      if (existingLog) {
+        console.log('Populating form with existing health log:', existingLog);
+        setFormData({
+          weight: existingLog.weight || '',
+          systolic: existingLog.systolic || '',
+          diastolic: existingLog.diastolic || '',
+          heart_rate: existingLog.heart_rate || '',
+          blood_sugar: existingLog.blood_sugar || '',
+          sleep_hours: existingLog.sleep_hours || '',
+          notes: existingLog.notes || ''
+        });
+      } else {
+        // Reset form for new entry
+        setFormData({
+          weight: '',
+          systolic: '',
+          diastolic: '',
+          heart_rate: '',
+          blood_sugar: '',
+          sleep_hours: '',
+          notes: ''
+        });
+      }
     }
-  }, [isOpen, patient]);
+  }, [isOpen, existingLog]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -50,32 +60,36 @@ function EditProfileModal({ isOpen, onClose, patient, onUpdate }) {
     setError('');
     setSuccess('');
 
-    // ✅ Add null safety check for patient
-    if (!patient || !patient.patient_id) {
+    if (!patientId) {
       setError('Patient information is not available. Please refresh the page and try again.');
       setLoading(false);
       return;
     }
 
-    // ✅ ADD DEBUGGING CODE HERE
-    console.log('=== PATIENT DATA DEBUG (BEFORE UPDATE) ===');
-    console.log('Raw patient object:', patient);
-    console.log('Patient ID value:', patient?.patient_id);
-    console.log('Patient ID type:', typeof patient?.patient_id);
-    console.log('Patient ID as string:', String(patient?.patient_id));
-    console.log('Patient ID JSON:', JSON.stringify(patient?.patient_id));
-
-    console.log('=== FRONTEND UPDATE DEBUG ===');
-    console.log('Patient object:', patient);
-    console.log('Patient ID:', patient.patient_id);
+    console.log('=== HEALTH LOG UPDATE DEBUG ===');
+    console.log('Patient ID:', patientId);
     console.log('Form data being sent:', formData);
-    console.log('API URL:', `/api/patients/${patient.patient_id}`);
+    console.log('Is updating existing log:', !!existingLog);
 
     try {
-      const response = await axios.patch(`/api/patients/${patient.patient_id}`, formData);
+      let response;
       
-      console.log('Update response:', response.data);
-      setSuccess('Profile updated successfully!');
+      if (existingLog) {
+        // Update existing health log
+        response = await axios.patch(`/api/health-logs/${existingLog.log_id}`, formData);
+        console.log('Health log updated:', response.data);
+        setSuccess('Health log updated successfully!');
+      } else {
+        // Create new health log
+        const logData = {
+          ...formData,
+          patient_id: patientId
+        };
+        response = await axios.post('/api/health-logs', logData);
+        console.log('Health log created:', response.data);
+        setSuccess('Health log added successfully!');
+      }
+      
       onUpdate(response.data);
       
       setTimeout(() => {
@@ -83,17 +97,16 @@ function EditProfileModal({ isOpen, onClose, patient, onUpdate }) {
         onClose();
       }, 1500);
     } catch (err) {
-      console.error('Frontend update error:', err);
+      console.error('Health log update error:', err);
       console.error('Error response:', err.response?.data);
       console.error('Error status:', err.response?.status);
       
-      // More specific error messages
       if (err.response?.status === 404) {
-        setError('Patient not found. Please refresh and try again.');
+        setError('Health log not found. Please refresh and try again.');
       } else if (err.response?.status === 500) {
         setError(`Server error: ${err.response?.data?.details || 'Please try again.'}`);
       } else {
-        setError(`Failed to update profile: ${err.response?.data?.error || err.message}`);
+        setError(`Failed to save health log: ${err.response?.data?.error || err.message}`);
       }
     } finally {
       setLoading(false);
@@ -106,32 +119,14 @@ function EditProfileModal({ isOpen, onClose, patient, onUpdate }) {
     onClose();
   };
 
-  // ✅ Add safety check before rendering
-  if (!patient) {
-    return (
-      <Modal 
-        isOpen={isOpen} 
-        onClose={handleClose} 
-        title="Edit Profile" 
-        size="lg"
-      >
-        <div className="text-center py-8">
-          <p className="text-slate-500">Loading patient information...</p>
-        </div>
-      </Modal>
-    );
-  }
-
   return (
     <Modal 
       isOpen={isOpen} 
       onClose={handleClose} 
-      title="Edit Profile" 
+      title={existingLog ? "Update Health Log" : "Add Health Log"} 
       size="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
-        <ProfilePhotoSection />
-
         {/* Error/Success Messages */}
         {error && (
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -144,7 +139,7 @@ function EditProfileModal({ isOpen, onClose, patient, onUpdate }) {
           </div>
         )}
 
-        <ProfileForm 
+        <HealthLogForm 
           formData={formData} 
           onChange={handleInputChange}
         />
@@ -166,10 +161,10 @@ function EditProfileModal({ isOpen, onClose, patient, onUpdate }) {
             {loading ? (
               <div className="flex items-center space-x-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>Updating...</span>
+                <span>{existingLog ? 'Updating...' : 'Adding...'}</span>
               </div>
             ) : (
-              'Save Changes'
+              existingLog ? 'Update Log' : 'Add Log'
             )}
           </button>
         </div>
@@ -178,4 +173,4 @@ function EditProfileModal({ isOpen, onClose, patient, onUpdate }) {
   );
 }
 
-export default EditProfileModal;
+export default EditHealthLogModal;

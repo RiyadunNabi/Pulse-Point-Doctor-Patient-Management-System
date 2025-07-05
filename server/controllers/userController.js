@@ -23,10 +23,10 @@ const createUser = async (req, res) => {
 
     // Start database transaction
     const client = await pool.connect();
-    
+
     try {
         await client.query('BEGIN');
-        
+
         // Hash password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
@@ -48,40 +48,50 @@ const createUser = async (req, res) => {
                 RETURNING patient_id
             `;
             const patientResult = await client.query(patientQuery, [
-                newUser.user_id, 
-                username, 
-                '', 
+                newUser.user_id,
+                username,
+                '',
                 'male', // Default value - can be updated later
                 '1990-01-01' // Default value - can be updated later
             ]);
             newUser.patient_id = patientResult.rows[0].patient_id;
-            
+
         } else if (role === 'doctor') {
+            // Get the dummy/default department
+            const defaultDeptResult = await client.query(
+                'SELECT department_id FROM department WHERE department_name = $1',
+                ['Unassigned'] // or 'General Practice'
+            );
+
+            if (defaultDeptResult.rows.length === 0) {
+                throw new Error('Default department "Unassigned" not found. Please ensure it exists.');
+            }
+
             const doctorQuery = `
-                INSERT INTO doctor (user_id, first_name, last_name, specialization, qualification) 
-                VALUES ($1, $2, $3, $4, $5) 
-                RETURNING doctor_id
-            `;
+            INSERT INTO doctor (user_id, department_id, first_name, last_name, gender) 
+            VALUES ($1, $2, $3, $4, $5) 
+            RETURNING doctor_id`;
+
             const doctorResult = await client.query(doctorQuery, [
-                newUser.user_id, 
-                username, 
-                '', 
-                'General Medicine', // Default value
-                'MBBS' // Default value
+                newUser.user_id,
+                defaultDeptResult.rows[0].department_id,
+                username,
+                '', // last_name - can be updated later
+                'male' // Default gender - required field
             ]);
             newUser.doctor_id = doctorResult.rows[0].doctor_id;
         }
 
         // Commit transaction
         await client.query('COMMIT');
-        
+
         console.log('User and profile created successfully:', newUser);
         res.status(201).json(newUser);
-        
+
     } catch (err) {
         // Rollback transaction on error
         await client.query('ROLLBACK');
-        
+
         if (err.code === '23505') {
             return res.status(409).json({ error: "A user with this email already exists." });
         }

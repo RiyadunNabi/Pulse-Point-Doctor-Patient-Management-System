@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { Bell, LogOut, User } from 'lucide-react';
-import ProfileCard from './ProfileCard';
-import HealthLogSection from './HealthLogSection';
-import GraphSection from './GraphSection';
-import MedicalDocumentsSection from './MedicalDocumentsSection';
+import { Bell, LogOut, User, Stethoscope } from 'lucide-react';
+import DoctorProfileCard from './DoctorProfileCard';
+import AppointmentStatsSection from './AppointmentStatsSection';
+import RevenueSection from './RevenueSection';
+import RatingsSection from './RatingsSection';
+import ScheduleSection from './ScheduleSection';
 
-// Pulse Point Logo Component
+// Pulse Point Logo Component (reused from PatientDashboard)
 const PulsePointLogo = ({ className = "w-8 h-8" }) => (
     <div className={`${className} flex items-center justify-center`}>
         <svg viewBox="0 0 100 100" className="w-full h-full">
@@ -30,28 +31,30 @@ const PulsePointLogo = ({ className = "w-8 h-8" }) => (
     </div>
 );
 
-function PatientDashboard({ user, onLogout }) {
-    // ✅ ALL HOOKS DECLARED FIRST - No conditional calls
-    const [patient, setPatient] = useState(null);
-    const [healthLogs, setHealthLogs] = useState([]);
+function DoctorDashboard({ user, onLogout }) {
+    // State management
+    const [doctor, setDoctor] = useState(null);
+    const [appointments, setAppointments] = useState([]);
+    const [revenueData, setRevenueData] = useState(null);
+    const [ratingsData, setRatingsData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [notifications] = useState(3);
+    const [notifications] = useState(5);
 
-    // Navigation tabs
+    // Navigation tabs for doctors
     const navTabs = [
         { id: 'dashboard', label: 'Dashboard', active: true },
-        { id: 'doctors', label: 'Doctors', active: false },
-        { id: 'departments', label: 'Departments', active: false },
-        { id: 'appointments', label: 'Book Appointment', active: false },
+        { id: 'appointments', label: 'Appointments', active: false },
+        { id: 'patients', label: 'My Patients', active: false },
+        { id: 'schedule', label: 'Schedule', active: false },
         { id: 'articles', label: 'Health Articles', active: false },
     ];
 
-    // ✅ User validation with useEffect instead of early return
+    // User validation
     useEffect(() => {
-        if (!user || !user.patient_id) {
-            console.error('Invalid user data:', user);
-            setError('Invalid user session. Please log in again.');
+        if (!user || !user.doctor_id) {
+            console.error('Invalid doctor data:', user);
+            setError('Invalid doctor session. Please log in again.');
             if (onLogout) {
                 onLogout();
             }
@@ -59,111 +62,124 @@ function PatientDashboard({ user, onLogout }) {
         }
     }, [user, onLogout]);
 
-    // ✅ Enhanced fetchPatientData with proper error handling
-    // ✅ Enhanced fetchPatientData - Don't treat missing data as error
-    const fetchPatientData = useCallback(async () => {
-        if (!user?.patient_id) {
-            console.error('No patient_id available');
-            setError('Patient ID not found. Please log in again.');
+    // Fetch doctor profile data
+    const fetchDoctorData = useCallback(async () => {
+        if (!user?.doctor_id) {
+            console.error('No doctor_id available');
+            setError('Doctor ID not found. Please log in again.');
             return;
         }
 
         try {
-            console.log('Fetching patient data for ID:', user.patient_id);
-            const response = await axios.get(`/api/patients/${user.patient_id}`);
-            console.log('Patient data received:', response.data);
+            console.log('Fetching doctor data for ID:', user.doctor_id);
+            const response = await axios.get(`/api/doctors/${user.doctor_id}`);
+            console.log('Doctor data received:', response.data);
             
-            // ✅ ADD DEBUGGING CODE HERE
-        console.log('=== PATIENT DATA DEBUG ===');
-        console.log('Raw patient object:', response.data);
-        console.log('Patient ID value:', response.data?.patient_id);
-        console.log('Patient ID type:', typeof response.data?.patient_id);
-        console.log('Patient ID as string:', String(response.data?.patient_id));
-        console.log('Patient ID JSON:', JSON.stringify(response.data?.patient_id));
-            
-            setPatient(response.data);
-            setError(''); // Clear any previous errors
+            setDoctor(response.data);
+            setError('');
         } catch (error) {
-            console.error('Error fetching patient data:', error);
+            console.error('Error fetching doctor data:', error);
             if (error.response?.status === 404) {
-                // Instead of error, create a basic patient object from user data
-                console.log('Patient profile not found, creating basic profile from user data');
-                const basicPatient = {
-                    patient_id: user.patient_id,
+                const basicDoctor = {
+                    doctor_id: user.doctor_id,
                     user_id: user.user_id,
-                    first_name: user.username || 'Patient',
+                    first_name: user.username || 'Doctor',
                     last_name: '',
                     gender: null,
-                    date_of_birth: null,
+                    bio: null,
+                    consultation_fee: null,
+                    license_no: null,
                     phone_no: null,
                     address: null,
-                    blood_group: null,
-                    health_condition: null,
+                    avg_rating: null,
+                    department_name: 'Unassigned',
                     email: user.email,
                     is_active: true,
-                    // Flag to indicate this is incomplete
                     isIncomplete: true
                 };
-                setPatient(basicPatient);
-                setError(''); // Don't show error
+                setDoctor(basicDoctor);
+                setError('');
             } else if (error.response?.status === 401) {
                 setError('Session expired. Please log in again.');
                 onLogout();
             } else {
-                setError('Failed to load patient information. Please try refreshing the page.');
+                setError('Failed to load doctor information. Please try refreshing the page.');
             }
         }
-    }, [user?.patient_id, user?.username, user?.email, user?.user_id, onLogout]);
+    }, [user?.doctor_id, user?.username, user?.email, user?.user_id, onLogout]);
 
-
-    // ✅ Enhanced fetchHealthLogs with proper error handling
-    const fetchHealthLogs = useCallback(async () => {
-        if (!user?.patient_id) {
-            console.error('No patient_id available for health logs');
+    // Fetch appointments data
+    const fetchAppointments = useCallback(async () => {
+        if (!user?.doctor_id) {
+            console.error('No doctor_id available for appointments');
             return;
         }
 
         try {
-            console.log('Fetching health logs for patient ID:', user.patient_id);
-            const response = await axios.get(`/api/health-logs/patient/${user.patient_id}`);
-            console.log('Health logs received:', response.data);
-            setHealthLogs(response.data);
+            console.log('Fetching appointments for doctor ID:', user.doctor_id);
+            const response = await axios.get(`/api/appointments/doctor/${user.doctor_id}`);
+            console.log('Appointments received:', response.data);
+            setAppointments(response.data);
         } catch (error) {
-            console.error('Error fetching health logs:', error);
-            // Don't set error for health logs as it's not critical
+            console.error('Error fetching appointments:', error);
+        }
+    }, [user?.doctor_id]);
+
+    // Fetch revenue data
+    const fetchRevenueData = useCallback(async () => {
+        if (!user?.doctor_id) return;
+
+        try {
+            const response = await axios.get(`/api/payments/doctor/${user.doctor_id}/revenue`);
+            setRevenueData(response.data);
+        } catch (error) {
+            console.error('Error fetching revenue data:', error);
+        }
+    }, [user?.doctor_id]);
+
+    // Fetch ratings data
+    const fetchRatingsData = useCallback(async () => {
+        if (!user?.doctor_id) return;
+
+        try {
+            const response = await axios.get(`/api/reviews/doctor/${user.doctor_id}`);
+            setRatingsData(response.data);
+        } catch (error) {
+            console.error('Error fetching ratings data:', error);
         } finally {
             setLoading(false);
         }
-    }, [user?.patient_id]);
+    }, [user?.doctor_id]);
 
-    // ✅ Enhanced useEffect with proper dependency management
+    // Main data fetching effect
     useEffect(() => {
-        if (user?.patient_id) {
-            fetchPatientData();
-            fetchHealthLogs();
+        if (user?.doctor_id) {
+            fetchDoctorData();
+            fetchAppointments();
+            fetchRevenueData();
+            fetchRatingsData();
         } else {
             setLoading(false);
         }
-    }, [fetchPatientData, fetchHealthLogs, user?.patient_id]);
+    }, [fetchDoctorData, fetchAppointments, fetchRevenueData, fetchRatingsData, user?.doctor_id]);
 
-    // ✅ Enhanced handlePatientUpdate with validation
-    const handlePatientUpdate = (updatedPatient) => {
-        if (updatedPatient && updatedPatient.patient_id) {
-            console.log('Patient updated successfully:', updatedPatient);
-            setPatient(updatedPatient);
+    // Handle doctor profile update
+    const handleDoctorUpdate = (updatedDoctor) => {
+        if (updatedDoctor && updatedDoctor.doctor_id) {
+            console.log('Doctor updated successfully:', updatedDoctor);
+            setDoctor(updatedDoctor);
         } else {
-            console.error('Invalid patient update data:', updatedPatient);
+            console.error('Invalid doctor update data:', updatedDoctor);
         }
     };
 
-    // ✅ CONDITIONAL RENDERING AFTER ALL HOOKS
-    // User validation check
-    if (!user || !user.patient_id) {
+    // Error handling
+    if (!user || !user.doctor_id) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50 flex items-center justify-center">
                 <div className="text-center bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/50 p-8">
                     <h2 className="text-xl font-bold text-slate-800 mb-4">Session Error</h2>
-                    <p className="text-red-600 mb-6">Invalid user session. Please log in again.</p>
+                    <p className="text-red-600 mb-6">Invalid doctor session. Please log in again.</p>
                     <button
                         onClick={onLogout}
                         className="px-6 py-3 bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white rounded-lg"
@@ -175,13 +191,12 @@ function PatientDashboard({ user, onLogout }) {
         );
     }
 
-    // Enhanced error state handling
     if (error) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50 flex items-center justify-center">
                 <div className="max-w-md mx-auto text-center bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/50 p-8">
                     <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <User className="w-8 h-8 text-red-600" />
+                        <Stethoscope className="w-8 h-8 text-red-600" />
                     </div>
                     <h2 className="text-xl font-bold text-slate-800 mb-2">Dashboard Error</h2>
                     <p className="text-red-600 mb-6">{error}</p>
@@ -204,7 +219,6 @@ function PatientDashboard({ user, onLogout }) {
         );
     }
 
-    // Enhanced loading state
     if (loading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50 flex items-center justify-center">
@@ -214,7 +228,7 @@ function PatientDashboard({ user, onLogout }) {
                         <span className="text-slate-700 font-medium">Loading your dashboard...</span>
                     </div>
                     <p className="text-sm text-slate-500">
-                        {user?.patient_id ? 'Fetching your health data...' : 'Validating session...'}
+                        {user?.doctor_id ? 'Fetching your practice data...' : 'Validating session...'}
                     </p>
                 </div>
             </div>
@@ -238,7 +252,7 @@ function PatientDashboard({ user, onLogout }) {
                             <PulsePointLogo className="w-10 h-10" />
                             <div>
                                 <h1 className="text-xl font-bold text-slate-800">Pulse Point</h1>
-                                <p className="text-xs text-slate-500">Healthcare Portal</p>
+                                <p className="text-xs text-slate-500">Doctor Portal</p>
                             </div>
                         </div>
 
@@ -269,7 +283,7 @@ function PatientDashboard({ user, onLogout }) {
                             </button>
 
                             <div className="w-8 h-8 bg-gradient-to-r from-sky-400 to-cyan-400 rounded-full flex items-center justify-center">
-                                <User className="w-5 h-5 text-white" />
+                                <Stethoscope className="w-5 h-5 text-white" />
                             </div>
 
                             <button
@@ -286,34 +300,46 @@ function PatientDashboard({ user, onLogout }) {
 
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-                {/* Enhanced Profile Card with null safety */}
-                <ProfileCard
-                    patient={patient}
-                    onPatientUpdate={handlePatientUpdate}
+                {/* Doctor Profile Card */}
+                <DoctorProfileCard
+                    doctor={doctor}
+                    onDoctorUpdate={handleDoctorUpdate}
                 />
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-                    {/* Health Log Section */}
+                    {/* Appointment Statistics */}
                     <div className="lg:col-span-1">
-                        <HealthLogSection
-                            healthLogs={healthLogs}
-                            onUpdate={fetchHealthLogs}
-                            patientId={user?.patient_id}
+                        <AppointmentStatsSection
+                            appointments={appointments}
+                            onUpdate={fetchAppointments}
+                            doctorId={user?.doctor_id}
                         />
                     </div>
 
-                    {/* Graph Section */}
+                    {/* Revenue Analytics */}
                     <div className="lg:col-span-2">
-                        <GraphSection healthLogs={healthLogs} />
+                        <RevenueSection 
+                            revenueData={revenueData} 
+                            doctorId={user?.doctor_id}
+                        />
                     </div>
                 </div>
 
-                {/* Medical Documents Section */}
-                <MedicalDocumentsSection patientId={user?.patient_id} />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                    {/* Ratings and Reviews */}
+                    <RatingsSection 
+                        ratingsData={ratingsData} 
+                        doctorId={user?.doctor_id}
+                    />
+
+                    {/* Schedule Management */}
+                    <ScheduleSection 
+                        doctorId={user?.doctor_id}
+                    />
+                </div>
             </div>
         </div>
     );
 }
 
-export default PatientDashboard;
-
+export default DoctorDashboard;

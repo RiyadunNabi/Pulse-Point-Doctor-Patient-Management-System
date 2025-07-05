@@ -5,11 +5,25 @@ const fs = require('fs');
  * @route   POST /api/medical-documents
  */
 const createMedicalDocument = async (req, res) => {
+    console.log('=== MEDICAL DOCUMENT UPLOAD DEBUG ===');
+    console.log('Request body:', req.body);
+    console.log('Request file:', req.file);
+    console.log('Headers content-type:', req.headers['content-type']);
+
     if (!req.file) {
         return res.status(400).json({ error: 'No document file uploaded.' });
     }
     const { patient_id, description, last_checkup_date } = req.body;
     const { originalname, path: filepath } = req.file;
+
+    if (!last_checkup_date) {
+        return res
+            .status(400)
+            .json({ error: 'last_checkup_date is required.' });
+    }
+
+    console.log('File details:', { originalname, filepath, size: req.file.size });
+    console.log('Form data:', { patient_id, description, last_checkup_date });
 
     if (!patient_id) {
         return res.status(400).json({ error: 'patient_id is required.' });
@@ -21,6 +35,7 @@ const createMedicalDocument = async (req, res) => {
              VALUES ($1, $2, $3, $4, $5) RETURNING *`,
             [patient_id, originalname, filepath, description, last_checkup_date]
         );
+        console.log('Database insert successful:', result.rows[0]);
         res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error("Error creating medical document:", err);
@@ -103,14 +118,14 @@ const deleteMedicalDocument = async (req, res) => {
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "Document not found" });
         }
-        
+
         const filepath = result.rows[0].file_path;
         if (filepath && fs.existsSync(filepath)) {
             fs.unlink(filepath, (err) => {
                 if (err) console.error("Error deleting document file:", err);
             });
         }
-        
+
         res.status(204).send();
     } catch (err) {
         console.error("Error deleting medical document:", err);

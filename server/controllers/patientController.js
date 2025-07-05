@@ -22,7 +22,11 @@ const getAllPatients = async (req, res) => {
 // @desc    Get a single patient's profile by ID
 // @route   GET /api/patients/:id
 const getPatientById = async (req, res) => {
-  const { id } = req.params;
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) {
+    return res.status(400).json({ error: "Invalid patient ID format." });
+  }
+  
   try {
     const query = `
       SELECT 
@@ -87,7 +91,7 @@ const createPatient = async (req, res) => {
 // @desc    Update a patient's profile
 // @route   PATCH /api/patients/:id
 const updatePatient = async (req, res) => {
-  const { id } = req.params;
+  const id = parseInt(req.params.id, 10);
   const { first_name, last_name, gender, date_of_birth, phone_no, address, blood_group, health_condition } = req.body;
     
   // Add debugging logs ==========================================================================
