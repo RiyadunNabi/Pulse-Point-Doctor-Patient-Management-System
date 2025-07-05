@@ -1,6 +1,5 @@
 const pool = require('../db/connection');
 
-// @desc    Get all active doctors with essential details
 // @route   GET /api/doctors
 const getAllDoctors = async (req, res) => {
   try {
@@ -24,7 +23,7 @@ const getAllDoctors = async (req, res) => {
   }
 };
 
-// @desc    Get a single doctor's full profile by ID
+
 // @route   GET /api/doctors/:id
 const getDoctorById = async (req, res) => {
   const { id } = req.params;
@@ -52,7 +51,6 @@ const getDoctorById = async (req, res) => {
   }
 };
 
-// @desc    Create a new doctor profile
 // @route   POST /api/doctors
 const createDoctor = async (req, res) => {
   const { user_id, department_id, first_name, last_name, gender, phone_no, license_no, bio, consultation_fee, address } = req.body;
@@ -62,7 +60,6 @@ const createDoctor = async (req, res) => {
   }
 
   try {
-    // Check 1: Verify the user exists and has the 'doctor' role
     const userResult = await pool.query('SELECT role FROM "user" WHERE user_id = $1', [user_id]);
     if (userResult.rows.length === 0) {
         return res.status(404).json({ error: `User with user_id ${user_id} not found.` });
@@ -71,13 +68,12 @@ const createDoctor = async (req, res) => {
         return res.status(403).json({ error: `User with user_id ${user_id} is not a doctor.` });
     }
 
-    // Check 2: Verify a doctor profile for this user doesn't already exist
+
     const doctorExists = await pool.query('SELECT 1 FROM doctor WHERE user_id = $1', [user_id]);
     if (doctorExists.rows.length > 0) {
         return res.status(409).json({ error: `A doctor profile for user_id ${user_id} already exists.` });
     }
     
-    // All checks passed, create the doctor
     const query = `
       INSERT INTO doctor (user_id, department_id, first_name, last_name, gender, phone_no, license_no, bio, consultation_fee, address)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
@@ -92,13 +88,11 @@ const createDoctor = async (req, res) => {
   }
 };
 
-// @desc    Update a doctor's profile
 // @route   PATCH /api/doctors/:id
 const updateDoctor = async (req, res) => {
     const { id } = req.params;
     const { first_name, last_name, gender, bio, consultation_fee, license_no, phone_no, address, department_id } = req.body;
 
-    // This is a simplified dynamic query. A more robust solution might build the query string.
     try {
         const query = `
           UPDATE doctor SET

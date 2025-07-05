@@ -89,7 +89,13 @@ const createPatient = async (req, res) => {
 const updatePatient = async (req, res) => {
   const { id } = req.params;
   const { first_name, last_name, gender, date_of_birth, phone_no, address, blood_group, health_condition } = req.body;
-
+    
+  // Add debugging logs ==========================================================================
+  console.log('=== UPDATE PATIENT DEBUG ===');
+  console.log('Patient ID:', id);
+  console.log('Request body:', req.body);
+  console.log('Extracted fields:', { first_name, last_name, gender, date_of_birth, phone_no, address, blood_group, health_condition });
+  //==============================================================================================
   try {
     const query = `
       UPDATE patient SET

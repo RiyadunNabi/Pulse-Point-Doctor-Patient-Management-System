@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const authenticateToken = require('../middleware/authMiddleware');
 const {
   getAllPatients,
   getPatientById,
@@ -7,15 +8,12 @@ const {
   updatePatient,
 } = require("../controllers/patientController");
 
-// Routes for /api/patients
 router.route("/")
-  .get(getAllPatients)
-  .post(createPatient);
+  .get(authenticateToken, getAllPatients)
+  .post(authenticateToken, createPatient);
 
-// Routes for /api/patients/:id
 router.route("/:id")
-  .get(getPatientById)
-  .patch(updatePatient);
-// Note: We are intentionally not adding a DELETE route for the same reasons as the doctor resource.
+  .get(authenticateToken, getPatientById)
+  .patch(authenticateToken, updatePatient);
 
 module.exports = router;

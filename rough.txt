@@ -6,7 +6,26 @@ password: "your_password",          // ✅ same as in Navicat
 port: 5432,
 
 
+==============================================================
+Summed up as a text palette:
+All backgrounds and gradients use the blue/cyan palette above.
+Cards and forms are white, main text is navy or dark blue,
+primary buttons are a blue/cyan gradient, secondary text is gray.
+Follow this for all pages and components.
 
+- Brand/Primary: Sky Blue (#38bdf8), Blue (#60a5fa), Cyan (#22d3ee)
+- Background: White (#ffffff), Translucent White (rgba(255,255,255,0.95))
+- Card Border/Shadow: Subtle White border, shadow-2xl
+- Main Text: Navy/Dark Blue (#1e293b), Blue (#0369a1)
+- Secondary Text: Gray (#64748b)
+- Action Button: Gradient from Sky-600 (#0ea5e9) to Cyan-600 (#0891b2)
+- Button Hover: Sky-700 (#0369a1), Cyan-700 (#0e7490)
+- Error/Alert: Red-400 (#f87171)
+- Success: Green-500 (#22c55e)
+- Input Border: Gray-200 (#e5e7eb)
+- Placeholder: Slate-400 (#94a3b8)
+- Decorative Background Shapes: Opacity 20–30% of blue/cyan
+=========================================================
 
 
 //

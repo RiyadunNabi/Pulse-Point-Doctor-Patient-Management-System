@@ -1,7 +1,6 @@
 const pool = require('../db/connection');
 
-// @desc    Get all investigations
-// @route   GET /api/investigations
+// /api/investigations
 const getAllInvestigations = async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM investigation ORDER BY investigation_id ASC');
@@ -11,7 +10,6 @@ const getAllInvestigations = async (req, res) => {
     }
 };
 
-// @desc    Get a single investigation by ID
 // @route   GET /api/investigations/:id
 const getInvestigationById = async (req, res) => {
     const { id } = req.params;
@@ -26,7 +24,6 @@ const getInvestigationById = async (req, res) => {
     }
 };
 
-// @desc    Create a new investigation
 // @route   POST /api/investigations
 const createInvestigation = async (req, res) => {
     const { name, description } = req.body;
@@ -44,7 +41,6 @@ const createInvestigation = async (req, res) => {
     }
 };
 
-// @desc    Update an investigation
 // @route   PATCH /api/investigations/:id
 const updateInvestigation = async (req, res) => {
     const { id } = req.params;
@@ -64,7 +60,6 @@ const updateInvestigation = async (req, res) => {
     }
 };
 
-// @desc    Delete an investigation
 // @route   DELETE /api/investigations/:id
 const deleteInvestigation = async (req, res) => {
     const { id } = req.params;

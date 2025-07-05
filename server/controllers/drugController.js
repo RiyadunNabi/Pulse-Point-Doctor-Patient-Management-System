@@ -1,7 +1,6 @@
 const pool = require('../db/connection');
 
 /**
- * @desc    Get all drugs, with optional search
  * @route   GET /api/drugs
  */
 const getAllDrugs = async (req, res) => {
@@ -27,7 +26,6 @@ const getAllDrugs = async (req, res) => {
 };
 
 /**
- * @desc    Get a single drug by ID
  * @route   GET /api/drugs/:id
  */
 const getDrugById = async (req, res) => {
@@ -45,7 +43,6 @@ const getDrugById = async (req, res) => {
 };
 
 /**
- * @desc    Create a new drug
  * @route   POST /api/drugs
  */
 const createDrug = async (req, res) => {
@@ -66,7 +63,6 @@ const createDrug = async (req, res) => {
 };
 
 /**
- * @desc    Update a drug
  * @route   PATCH /api/drugs/:id
  */
 const updateDrug = async (req, res) => {
@@ -93,7 +89,6 @@ const updateDrug = async (req, res) => {
 };
 
 /**
- * @desc    Delete a drug
  * @route   DELETE /api/drugs/:id
  */
 const deleteDrug = async (req, res) => {

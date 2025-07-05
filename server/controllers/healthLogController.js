@@ -1,7 +1,6 @@
 const pool = require('../db/connection');
 
 /**
- * @desc    Create a new health log for a patient
  * @route   POST /api/health-logs
  */
 const createHealthLog = async (req, res) => {
@@ -23,7 +22,6 @@ const createHealthLog = async (req, res) => {
 };
 
 /**
- * @desc    Get health logs for a patient, with optional date filtering
  * @route   GET /api/health-logs/patient/:patientId
  */
 const getHealthLogsByPatient = async (req, res) => {
@@ -52,7 +50,6 @@ const getHealthLogsByPatient = async (req, res) => {
 };
 
 /**
- * @desc    Update a specific health log entry
  * @route   PATCH /api/health-logs/:id
  */
 const updateHealthLog = async (req, res) => {
@@ -79,7 +76,6 @@ const updateHealthLog = async (req, res) => {
 };
 
 /**
- * @desc    Delete a specific health log entry
  * @route   DELETE /api/health-logs/:id
  */
 const deleteHealthLog = async (req, res) => {

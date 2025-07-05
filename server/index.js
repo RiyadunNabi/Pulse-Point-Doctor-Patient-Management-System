@@ -1,11 +1,17 @@
 const express = require("express");
 const cors = require("cors");
 const pool = require("./db/connection");
+require('dotenv').config();
+const authenticateToken = require('./middleware/authMiddleware');
 
 const app = express();
 const PORT = 5000;
+const setupSwagger = require('./swagger');
+setupSwagger(app);
+
 
 app.use(cors());
+app.use(express.json());
 app.use(express.json());
 
 // Routes
@@ -29,11 +35,17 @@ const healthLogRoutes = require("./routes/healthLogRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const medicalDocumentRoutes = require("./routes/medicalDocumentRoutes");
 const healthArticleRoutes = require("./routes/healthArticleRoutes");
+const authRoutes = require('./routes/authRoutes');
 
 
+//---------------------------------
+app.use('/api/auth', authRoutes);
+app.use("/api/users", userRoutes);
+//----------------------------------
+
+// app.use(authenticateToken);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/departments", departmentRoutes);
-app.use("/api/users", userRoutes);
 app.use("/api/patients", patientRoutes);
 app.use("/api/schedule", scheduleRoutes);
 app.use("/api/appointments", appointmentRoutes);

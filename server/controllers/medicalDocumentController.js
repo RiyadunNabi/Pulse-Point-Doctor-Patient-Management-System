@@ -1,8 +1,7 @@
 const pool = require('../db/connection');
 const fs = require('fs');
 
-/**
- * @desc    Upload a new medical document for a patient
+/*
  * @route   POST /api/medical-documents
  */
 const createMedicalDocument = async (req, res) => {
@@ -30,7 +29,6 @@ const createMedicalDocument = async (req, res) => {
 };
 
 /**
- * @desc    Get all documents for a specific patient
  * @route   GET /api/medical-documents/patient/:patientId
  */
 const getDocumentsByPatient = async (req, res) => {
@@ -48,7 +46,6 @@ const getDocumentsByPatient = async (req, res) => {
 };
 
 /**
- * @desc    Update a medical document's text details
  * @route   PATCH /api/medical-documents/:id
  */
 const updateMedicalDocument = async (req, res) => {
@@ -73,8 +70,7 @@ const updateMedicalDocument = async (req, res) => {
     }
 };
 
-/**
- * @desc    Download a specific medical document
+/*
  * @route   GET /api/medical-documents/:id/download
  */
 const downloadMedicalDocument = async (req, res) => {
@@ -97,8 +93,7 @@ const downloadMedicalDocument = async (req, res) => {
     }
 };
 
-/**
- * @desc    Delete a medical document and its physical file
+/*
  * @route   DELETE /api/medical-documents/:id
  */
 const deleteMedicalDocument = async (req, res) => {

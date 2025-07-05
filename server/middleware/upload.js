@@ -58,7 +58,6 @@ const articleImageStorage = multer.diskStorage({
     }
 });
 
-// This is the most important part - it must export all three
 module.exports = {
     uploadMedicalDoc: multer({ storage: medicalDocStorage }),
     uploadPrescriptionFile: multer({ storage: prescriptionStorage }),

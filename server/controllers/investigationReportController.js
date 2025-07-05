@@ -2,7 +2,6 @@ const pool = require('../db/connection');
 const fs = require('fs');
 
 /**
- * @desc    Upload a report for a prescribed investigation
  * @route   POST /api/investigation-reports
  */
 const createInvestigationReport = async (req, res) => {
@@ -17,7 +16,6 @@ const createInvestigationReport = async (req, res) => {
     }
 
     try {
-        // Validate that this investigation was actually prescribed
         const pres_inv_check = await pool.query(
             'SELECT * FROM prescription_investigation WHERE prescription_id = $1 AND investigation_id = $2',
             [prescription_id, investigation_id]
@@ -40,7 +38,6 @@ const createInvestigationReport = async (req, res) => {
 };
 
 /**
- * @desc    Get all reports for a specific prescription
  * @route   GET /api/investigation-reports/prescription/:prescriptionId
  */
 const getReportsByPrescription = async (req, res) => {
@@ -61,7 +58,6 @@ const getReportsByPrescription = async (req, res) => {
 };
 
 /**
- * @desc    Download a specific report file
  * @route   GET /api/investigation-reports/:id/download
  */
 const downloadInvestigationReport = async (req, res) => {
@@ -84,8 +80,7 @@ const downloadInvestigationReport = async (req, res) => {
     }
 };
 
-/**
- * @desc    Delete a report file and its record
+/*
  * @route   DELETE /api/investigation-reports/:id
  */
 const deleteInvestigationReport = async (req, res) => {

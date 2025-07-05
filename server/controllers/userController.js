@@ -4,7 +4,6 @@ const bcrypt = require('bcryptjs');
 // GET /api/users
 const getUsers = async (req, res) => {
     try {
-        // Make sure 'is_active' is included in your SELECT statement
         const query = 'SELECT user_id, username, email, role, is_active, created_at FROM "user"';
         const result = await pool.query(query);
         res.status(200).json(result.rows);
@@ -18,42 +17,88 @@ const getUsers = async (req, res) => {
 const createUser = async (req, res) => {
     const { username, email, password, role } = req.body;
 
-    // 1. Input Validation
     if (!username || !email || !password || !role) {
         return res.status(400).json({ error: "Please provide all required fields." });
     }
 
+    // Start database transaction
+    const client = await pool.connect();
+    
     try {
-        // 2. Hash the password
+        await client.query('BEGIN');
+        
+        // Hash password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // 3. Insert user with the hashed password and return non-sensitive fields
-        const query = `
-    INSERT INTO "user" (username, email, password, role) 
-      VALUES ($1, $2, $3, $4) 
-      RETURNING user_id, username, email, role, created_at
-    `;
-        const result = await pool.query(query, [username, email, hashedPassword, role]);
+        // Create user first
+        const userQuery = `
+            INSERT INTO "user" (username, email, password, role) 
+            VALUES ($1, $2, $3, $4) 
+            RETURNING user_id, username, email, role, created_at
+        `;
+        const userResult = await client.query(userQuery, [username, email, hashedPassword, role]);
+        const newUser = userResult.rows[0];
 
-        res.status(201).json(result.rows[0]);
+        // Auto-create profile based on role
+        if (role === 'patient') {
+            const patientQuery = `
+                INSERT INTO patient (user_id, first_name, last_name, gender, date_of_birth) 
+                VALUES ($1, $2, $3, $4, $5) 
+                RETURNING patient_id
+            `;
+            const patientResult = await client.query(patientQuery, [
+                newUser.user_id, 
+                username, 
+                '', 
+                'male', // Default value - can be updated later
+                '1990-01-01' // Default value - can be updated later
+            ]);
+            newUser.patient_id = patientResult.rows[0].patient_id;
+            
+        } else if (role === 'doctor') {
+            const doctorQuery = `
+                INSERT INTO doctor (user_id, first_name, last_name, specialization, qualification) 
+                VALUES ($1, $2, $3, $4, $5) 
+                RETURNING doctor_id
+            `;
+            const doctorResult = await client.query(doctorQuery, [
+                newUser.user_id, 
+                username, 
+                '', 
+                'General Medicine', // Default value
+                'MBBS' // Default value
+            ]);
+            newUser.doctor_id = doctorResult.rows[0].doctor_id;
+        }
+
+        // Commit transaction
+        await client.query('COMMIT');
+        
+        console.log('User and profile created successfully:', newUser);
+        res.status(201).json(newUser);
+        
     } catch (err) {
-        // 4. Handle specific errors (e.g., email already exists)
-        if (err.code === '23505') { // PostgreSQL's unique violation error code
+        // Rollback transaction on error
+        await client.query('ROLLBACK');
+        
+        if (err.code === '23505') {
             return res.status(409).json({ error: "A user with this email already exists." });
         }
 
-        console.error("Error creating user:", err);
+        console.error("Error creating user and profile:", err);
         res.status(500).json({ error: "Internal server error" });
+    } finally {
+        client.release();
     }
 };
+
 
 // PATCH /api/users/:id
 const updateUser = async (req, res) => {
     const { id } = req.params;
     const { username, email, password, role, is_active } = req.body;
 
-    // the query, dynamically based on what fields are provided
     const fields = [];
     const values = [];
     let paramIndex = 1;
@@ -85,7 +130,7 @@ const updateUser = async (req, res) => {
         return res.status(400).json({ error: "No fields provided for update." });
     }
 
-    values.push(id); // Add the user_id for the WHERE clause
+    values.push(id);
 
     const query = `
     UPDATE "user" 
@@ -113,7 +158,7 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
     const { id } = req.params;
 
-    // This is a "soft delete" - we just deactivate the user
+    // deactivate the user
     const query = `
       UPDATE "user" 
       SET is_active = false 
@@ -126,7 +171,6 @@ const deleteUser = async (req, res) => {
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "User not found." });
         }
-        // Respond with 204 No Content, a standard for successful deletions without a body
         res.status(204).send();
     } catch (err) {
         console.error("Error deactivating user:", err);

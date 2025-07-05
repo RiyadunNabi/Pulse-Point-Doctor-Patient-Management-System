@@ -3,7 +3,6 @@ const fs = require('fs');
 const path = require('path');
 
 /**
- * @desc    Create a new health article
  * @route   POST /api/health-articles
  */
 const createArticle = async (req, res) => {
@@ -27,7 +26,6 @@ const createArticle = async (req, res) => {
 };
 
 /**
- * @desc    Get all articles, with author details and filtering
  * @route   GET /api/health-articles
  */
 const getAllArticles = async (req, res) => {
@@ -63,7 +61,6 @@ const getAllArticles = async (req, res) => {
 };
 
 /**
- * @desc    Get a single article by its ID
  * @route   GET /api/health-articles/:id
  */
 const getArticleById = async (req, res) => {
@@ -85,7 +82,6 @@ const getArticleById = async (req, res) => {
 };
 
 /**
- * @desc    Update an article
  * @route   PATCH /api/health-articles/:id
  */
 const updateArticle = async (req, res) => {
@@ -122,7 +118,6 @@ const updateArticle = async (req, res) => {
 };
 
 /**
- * @desc    Delete an article and its associated image
  * @route   DELETE /api/health-articles/:id
  */
 const deleteArticle = async (req, res) => {
@@ -147,7 +142,6 @@ const deleteArticle = async (req, res) => {
     }
 };
 
-// Use the consistent 'module.exports' pattern
 module.exports = {
     createArticle,
     getAllArticles,

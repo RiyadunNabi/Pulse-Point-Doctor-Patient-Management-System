@@ -1,4 +1,4 @@
-const pool = require('../db/connection');
+const pool = require('../db/connection'); 
 
 // @desc    Book a new appointment
 // @route   POST /api/appointments
@@ -10,11 +10,7 @@ const createAppointment = async (req, res) => {
     }
 
     try {
-        // Step 1: Get Doctor's Schedule for the Day
-        const date = new Date(appointment_date + 'T00:00:00'); // Use T00:00:00 to avoid timezone issues
-        // In PostgreSQL, to match your schema (0=Friday), we can use EXTRACT(DOW FROM ...)+1 and then modulo 7, but that's complex.
-        // A simpler way is to use a mapping in the backend, but for now let's use JS standard getDay() and assume you store it that way.
-        // JavaScript: 0=Sun, 1=Mon, ..., 6=Sat.
+        const date = new Date(appointment_date + 'T00:00:00');
         const dayOfWeek = date.getDay();
 
         const scheduleResult = await pool.query(
@@ -29,10 +25,8 @@ const createAppointment = async (req, res) => {
         const schedule = scheduleResult.rows[0];
         const { start_time, end_time, max_per_hour } = schedule;
 
-        // Step 2: Calculate Slot Duration
         const slotDurationMinutes = 60 / max_per_hour;
 
-        // Step 3: Find the Last Booked Appointment Time
         const lastAppointmentResult = await pool.query(
             `SELECT MAX(appointment_time) as last_time FROM appointment WHERE doctor_id = $1 AND appointment_date = $2 AND status != 'cancelled'`,
             [doctor_id, appointment_date]
@@ -40,31 +34,26 @@ const createAppointment = async (req, res) => {
 
         let nextSlotTime;
 
-        // Step 4: Calculate Next Available Time
         if (lastAppointmentResult.rows[0].last_time === null) {
-            // Case A: No appointments yet, this is the first one of the day.
             nextSlotTime = start_time;
         } else {
-            // Case B: There are existing appointments. Calculate the next slot.
             const lastTime = lastAppointmentResult.rows[0].last_time;
             const lastTimeParts = lastTime.split(':').map(Number); // [HH, MM, SS]
 
             const lastTimeDateObj = new Date();
             lastTimeDateObj.setHours(lastTimeParts[0], lastTimeParts[1], lastTimeParts[2]);
 
-            // Add slot duration
+        
             lastTimeDateObj.setMinutes(lastTimeDateObj.getMinutes() + slotDurationMinutes);
 
-            // Format back to "HH:mm:ss"
+            // "HH:mm:ss"
             nextSlotTime = lastTimeDateObj.toTimeString().split(' ')[0];
         }
 
-        // Step 5: Validate the Slot
         if (nextSlotTime >= end_time) {
             return res.status(400).json({ error: "Sorry, the doctor is fully booked for this day." });
         }
 
-        // Step 6: Book and Confirm
         const createQuery = `
           INSERT INTO appointment (doctor_id, patient_id, appointment_date, appointment_time, reason)
           VALUES ($1, $2, $3, $4, $5)
@@ -80,12 +69,10 @@ const createAppointment = async (req, res) => {
     }
 };
 
-// @desc    Get a single appointment by its ID
 // @route   GET /api/appointments/:id
 const getAppointmentById = async (req, res) => {
     const { id } = req.params;
     try {
-        // A comprehensive query for a single appointment
         const query = `
             SELECT 
                 a.*, 
@@ -109,10 +96,8 @@ const getAppointmentById = async (req, res) => {
     }
 };
 
-// @desc    Get all appointments for a specific doctor
 // @route   GET /api/appointments/doctor/:doctorId
 const getAppointmentsByDoctor = async (req, res) => {
-    // This logic is mostly from your original file, just refactored.
     const { doctorId } = req.params;
     try {
         const query = `
@@ -131,7 +116,6 @@ const getAppointmentsByDoctor = async (req, res) => {
     }
 };
 
-// @desc    Get all appointments for a specific patient
 // @route   GET /api/appointments/patient/:patientId
 const getAppointmentsByPatient = async (req, res) => {
     const { patientId } = req.params;
@@ -153,7 +137,6 @@ const getAppointmentsByPatient = async (req, res) => {
     }
 };
 
-// @desc    Update an appointment (e.g., its status)
 // @route   PATCH /api/appointments/:id
 const updateAppointment = async (req, res) => {
     const { id } = req.params;
@@ -182,7 +165,6 @@ const updateAppointment = async (req, res) => {
     }
 };
 
-// @desc    Cancel an appointment (sets status to 'cancelled')
 // @route   DELETE /api/appointments/:id
 const cancelAppointment = async (req, res) => {
     const { id } = req.params;

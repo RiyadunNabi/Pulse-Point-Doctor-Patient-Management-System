@@ -10,7 +10,6 @@ const addBookmarkedDoctor = async (req, res) => {
         return res.status(400).json({ error: 'patient_id and doctor_id are required.' });
     }
     try {
-        // ON CONFLICT DO NOTHING is an efficient way to handle duplicates
         const result = await pool.query(
             `INSERT INTO bookmarked_doctors (patient_id, doctor_id)
              VALUES ($1, $2) ON CONFLICT (patient_id, doctor_id) DO NOTHING RETURNING *`,
@@ -18,7 +17,6 @@ const addBookmarkedDoctor = async (req, res) => {
         );
 
         if (result.rows.length === 0) {
-            // This occurs if the bookmark already existed
             return res.status(200).json({ message: "Doctor is already bookmarked." });
         }
         
@@ -57,7 +55,6 @@ const getBookmarkedDoctors = async (req, res) => {
  * @route   DELETE /api/bookmarked-doctors/:patientId/:doctorId
  */
 const removeBookmarkedDoctor = async (req, res) => {
-    // Get IDs from URL params for a more RESTful approach
     const { patientId, doctorId } = req.params;
     try {
         const result = await pool.query(
@@ -69,7 +66,7 @@ const removeBookmarkedDoctor = async (req, res) => {
             return res.status(404).json({ error: 'Bookmark not found.' });
         }
 
-        res.status(204).send(); // Standard success response for DELETE
+        res.status(204).send();
     } catch (err) {
         console.error("Remove bookmarked doctor error:", err);
         res.status(500).json({ error: "Server error" });

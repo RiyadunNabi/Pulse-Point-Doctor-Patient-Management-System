@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+
 const {
   getAllDepartments,
   createDepartment,
@@ -7,12 +8,12 @@ const {
   deleteDepartment,
 } = require("../controllers/departmentController");
 
-// Routes for /api/departments
+// /api/departments
 router.route("/")
   .get(getAllDepartments)
   .post(createDepartment);
 
-// Routes for /api/departments/:id
+// /api/departments/:id
 router.route("/:id")
   .patch(updateDepartment)
   .delete(deleteDepartment);

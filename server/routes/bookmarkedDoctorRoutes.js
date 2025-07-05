@@ -6,13 +6,10 @@ const {
     removeBookmarkedDoctor,
 } = require('../controllers/bookmarkedDoctorController');
 
-// Add a new bookmark
 router.post('/', addBookmarkedDoctor);
 
-// Get all bookmarks for a patient
 router.get('/:patientId', getBookmarkedDoctors);
 
-// Remove a specific bookmark
 router.delete('/:patientId/:doctorId', removeBookmarkedDoctor);
 
 module.exports = router;
