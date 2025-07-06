@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Stethoscope, Edit, AlertTriangle, Star, MapPin, Phone, Mail } from 'lucide-react';
+import EditDoctorProfileModal from './EditDoctorProfileModal/EditDoctorProfileModal';
 
 // Helper function to check if profile is incomplete
 const isProfileIncomplete = (doctor) => {
     if (!doctor) return true;
-    
+
     const requiredFields = [
         'last_name',
         'bio',
@@ -13,7 +14,7 @@ const isProfileIncomplete = (doctor) => {
         'phone_no',
         'address'
     ];
-    
+
     return requiredFields.some(field => !doctor[field] || doctor[field] === '');
 };
 
@@ -21,6 +22,11 @@ function DoctorProfileCard({ doctor, onDoctorUpdate }) {
     const [showEditModal, setShowEditModal] = useState(false);
 
     const profileIncomplete = isProfileIncomplete(doctor);
+
+    // // Called by EditDoctorProfileModal after successful update
+    // const handleProfileUpdate = (updatedDoctor) => {
+    //     onDoctorUpdate(updatedDoctor);
+    // };
 
     return (
         <>
@@ -46,7 +52,7 @@ function DoctorProfileCard({ doctor, onDoctorUpdate }) {
                         <div className="w-20 h-20 bg-gradient-to-r from-sky-400 to-cyan-400 rounded-full flex items-center justify-center">
                             <Stethoscope className="w-10 h-10 text-white" />
                         </div>
-                        
+
                         {/* Basic Info */}
                         <div>
                             <div className="flex items-center space-x-3 mb-2">
@@ -62,7 +68,7 @@ function DoctorProfileCard({ doctor, onDoctorUpdate }) {
                                     </div>
                                 )}
                             </div>
-                            
+
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4 text-sm">
                                 <div>
                                     <span className="text-slate-500">Department:</span>
@@ -103,7 +109,7 @@ function DoctorProfileCard({ doctor, onDoctorUpdate }) {
                             </div>
                         </div>
                     </div>
-                    
+
                     {/* Edit Profile Button */}
                     <button
                         onClick={() => setShowEditModal(true)}
@@ -125,13 +131,13 @@ function DoctorProfileCard({ doctor, onDoctorUpdate }) {
                 )}
             </div>
 
-            {/* Edit Profile Modal - You'll need to create this */}
-            {/* <EditDoctorProfileModal
+            {/* Edit Profile Modal */}
+            {<EditDoctorProfileModal
                 isOpen={showEditModal}
                 onClose={() => setShowEditModal(false)}
                 doctor={doctor}
                 onUpdate={onDoctorUpdate}
-            /> */}
+            />}
         </>
     );
 }

@@ -113,7 +113,22 @@ const updateDoctor = async (req, res) => {
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "Doctor not found." });
         }
-        res.status(200).json(result.rows[0]);
+
+        // Get complete doctor data with department name for frontend
+        const completeQuery = `
+          SELECT 
+            d.doctor_id, d.first_name, d.last_name, d.gender, d.bio, d.consultation_fee,
+            d.license_no, d.phone_no, d.address, d.avg_rating, d.department_id,
+            u.email, u.is_active,
+            dep.department_name
+          FROM doctor d
+          JOIN "user" u ON d.user_id = u.user_id
+          JOIN department dep ON d.department_id = dep.department_id
+          WHERE d.doctor_id = $1
+        `;
+        const completeResult = await pool.query(completeQuery, [id]);
+
+        res.status(200).json(completeResult.rows[0]);
     } catch (err) {
         console.error(`Error updating doctor ${id}:`, err);
         res.status(500).json({ error: "Internal server error" });
