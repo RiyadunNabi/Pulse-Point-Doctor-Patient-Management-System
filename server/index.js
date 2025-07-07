@@ -12,7 +12,7 @@ setupSwagger(app);
 
 app.use(cors());
 app.use(express.json());
-app.use(express.json());
+// app.use(express.json());
 
 // Routes
 const doctorRoutes = require("./routes/doctorRoutes");

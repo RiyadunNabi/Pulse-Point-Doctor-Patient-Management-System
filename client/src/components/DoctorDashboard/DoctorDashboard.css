@@ -1,0 +1,182 @@
+/* Doctor Dashboard Layout Styles */
+
+/* Main Dashboard Grid Container */
+.doctor-dashboard-container {
+  display: grid;
+  gap: 2rem;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Row-based Layout with Equal Heights */
+.dashboard-row {
+  display: grid;
+  gap: 2rem;
+  align-items: stretch;
+}
+
+/* Two-column rows (50/50 split) */
+.dashboard-row-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Four-column rows (25/75 split) */
+.dashboard-row-4 {
+  grid-template-columns: 1fr 3fr;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 1024px) {
+  .dashboard-row-2,
+  .dashboard-row-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Individual Section Heights */
+.dashboard-section {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.dashboard-section-content {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  padding: 1.5rem;
+}
+
+/* Specific Row Heights */
+.dashboard-row-appointments {
+  min-height: 400px;
+}
+
+.dashboard-row-revenue {
+  min-height: 500px;
+}
+
+.dashboard-row-analytics {
+  min-height: 500px;
+}
+
+.dashboard-row-insights {
+  min-height: 450px;
+}
+
+/* Full-width sections */
+.dashboard-full-width {
+  grid-column: 1 / -1;
+}
+
+/* Profile card specific styling */
+.doctor-profile-section {
+  margin-bottom: 2rem;
+}
+
+/* Appointment overview specific styling */
+.appointment-overview-section {
+  margin-bottom: 2rem;
+}
+
+/* Widget containers */
+.dashboard-widget {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-widget-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Chart containers */
+.dashboard-chart-container {
+  height: 100%;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-chart-content {
+  flex: 1;
+  position: relative;
+}
+
+/* Sidebar widgets */
+.dashboard-sidebar-widget {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100%;
+}
+
+/* Animation and transitions */
+.dashboard-section-content {
+  transition: all 0.3s ease;
+}
+
+.dashboard-section-content:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.35);
+}
+
+/* Loading states */
+.dashboard-loading {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard-loading-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid #e2e8f0;
+  border-top: 2px solid #0ea5e9;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .doctor-dashboard-container {
+    padding: 1rem 0.5rem;
+    gap: 1rem;
+  }
+  
+  .dashboard-row {
+    gap: 1rem;
+  }
+  
+  .dashboard-section-content {
+    padding: 1rem;
+  }
+  
+  .dashboard-row-appointments,
+  .dashboard-row-revenue,
+  .dashboard-row-analytics,
+  .dashboard-row-insights {
+    min-height: auto;
+  }
+}
+
+/* Print styles */
+@media print {
+  .dashboard-section-content {
+    box-shadow: none;
+    border: 1px solid #e2e8f0;
+    break-inside: avoid;
+  }
+}

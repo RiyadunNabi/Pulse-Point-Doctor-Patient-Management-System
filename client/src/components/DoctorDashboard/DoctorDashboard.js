@@ -6,6 +6,11 @@ import AppointmentStatsSection from './AppointmentStatsSection';
 import RevenueSection from './RevenueSection';
 import RatingsSection from './RatingsSection';
 import ScheduleSection from './ScheduleSection';
+import PatientAnalyticsSection from './PatientAnalyticsSection';
+import UpcomingAppointmentsSection from './UpcomingAppointmentsSection';
+import QuickStatsWidget from './QuickStatsWidget';
+import HealthInsightsWidget from './HealthInsightsWidget';
+import MedicalInsightsSection from './MedicalInsightsSection';
 
 // Pulse Point Logo Component (reused from PatientDashboard)
 const PulsePointLogo = ({ className = "w-8 h-8" }) => (
@@ -40,6 +45,7 @@ function DoctorDashboard({ user, onLogout }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [notifications] = useState(5);
+    const [scheduleData, setScheduleData] = useState([]);
 
     // Navigation tabs for doctors
     const navTabs = [
@@ -74,7 +80,7 @@ function DoctorDashboard({ user, onLogout }) {
             console.log('Fetching doctor data for ID:', user.doctor_id);
             const response = await axios.get(`/api/doctors/${user.doctor_id}`);
             console.log('Doctor data received:', response.data);
-            
+
             setDoctor(response.data);
             setError('');
         } catch (error) {
@@ -151,17 +157,31 @@ function DoctorDashboard({ user, onLogout }) {
         }
     }, [user?.doctor_id]);
 
-    // Main data fetching effect
+    // Fetch schedule data
+    const fetchScheduleData = useCallback(async () => {
+        if (!user?.doctor_id) return;
+
+        try {
+            const response = await axios.get(`/api/schedule/doctor/${user.doctor_id}`);
+            setScheduleData(response.data);
+        } catch (error) {
+            console.error('Error fetching schedule data:', error);
+        }
+    }, [user?.doctor_id]);
+
+    // Add to your main useEffect
     useEffect(() => {
         if (user?.doctor_id) {
             fetchDoctorData();
             fetchAppointments();
             fetchRevenueData();
             fetchRatingsData();
+            fetchScheduleData(); // Add this line
         } else {
             setLoading(false);
         }
-    }, [fetchDoctorData, fetchAppointments, fetchRevenueData, fetchRatingsData, user?.doctor_id]);
+    }, [fetchDoctorData, fetchAppointments, fetchRevenueData, fetchRatingsData, fetchScheduleData, user?.doctor_id]);
+
 
     // Handle doctor profile update
     const handleDoctorUpdate = (updatedDoctor) => {
@@ -262,8 +282,8 @@ function DoctorDashboard({ user, onLogout }) {
                                 <button
                                     key={tab.id}
                                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${tab.active
-                                            ? 'bg-gradient-to-r from-sky-500 to-cyan-500 text-white shadow-md'
-                                            : 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
+                                        ? 'bg-gradient-to-r from-sky-500 to-cyan-500 text-white shadow-md'
+                                        : 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
                                         }`}
                                 >
                                     {tab.label}
@@ -300,40 +320,87 @@ function DoctorDashboard({ user, onLogout }) {
 
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-                {/* Doctor Profile Card */}
+                {/* Doctor Profile Card - Full Width */}
                 <DoctorProfileCard
                     doctor={doctor}
                     onDoctorUpdate={handleDoctorUpdate}
                 />
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-                    {/* Appointment Statistics */}
-                    <div className="lg:col-span-1">
-                        <AppointmentStatsSection
+                {/* Appointment Overview - Full Width Horizontal Grid */}
+                <div className="mt-8">
+                    <AppointmentStatsSection
+                        appointments={appointments}
+                        onUpdate={fetchAppointments}
+                        doctorId={user?.doctor_id}
+                        layout="horizontal" // New prop for horizontal layout
+                    />
+                </div>
+
+                {/* Upcoming Appointments & Schedule Management */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                    {/* Left: Upcoming Appointments */}
+                    <div>
+                        <UpcomingAppointmentsSection
                             appointments={appointments}
-                            onUpdate={fetchAppointments}
                             doctorId={user?.doctor_id}
                         />
                     </div>
 
-                    {/* Revenue Analytics */}
-                    <div className="lg:col-span-2">
-                        <RevenueSection 
-                            revenueData={revenueData} 
+                    {/* Right: Schedule Management */}
+                    <div>
+                        <ScheduleSection
                             doctorId={user?.doctor_id}
                         />
                     </div>
                 </div>
 
+                {/* Revenue Analytics with Side Widget */}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-8">
+                    {/* Left: Quick Stats Widget (1/4 width) */}
+                    <div className="lg:col-span-1">
+                        <QuickStatsWidget
+                            doctorId={user?.doctor_id}
+                        />
+                    </div>
+
+                    {/* Right: Revenue Analytics with Charts (3/4 width) */}
+                    <div className="lg:col-span-3">
+                        <RevenueSection
+                            revenueData={revenueData}
+                            doctorId={user?.doctor_id}
+                            layout="expanded" // New prop for larger chart area
+                        />
+                    </div>
+                </div>
+
+                {/* Patient Analytics with Side Widget */}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-8">
+                    {/* Left: Health Insights Widget (1/4 width) */}
+                    <div className="lg:col-span-1">
+                        <HealthInsightsWidget
+                            doctorId={user?.doctor_id}
+                        />
+                    </div>
+
+                    {/* Right: Patient Analytics with Charts (3/4 width) */}
+                    <div className="lg:col-span-3">
+                        <PatientAnalyticsSection
+                            doctorId={user?.doctor_id}
+                            layout="expanded" // New prop for chart display
+                        />
+                    </div>
+                </div>
+
+                {/* Bottom Row - Reviews & Additional Feature */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-                    {/* Ratings and Reviews */}
-                    <RatingsSection 
-                        ratingsData={ratingsData} 
+                    {/* Left: Ratings and Reviews (Half Width) */}
+                    <RatingsSection
+                        ratingsData={ratingsData}
                         doctorId={user?.doctor_id}
                     />
 
-                    {/* Schedule Management */}
-                    <ScheduleSection 
+                    {/* Right: Medical Insights Dashboard (Half Width) */}
+                    <MedicalInsightsSection
                         doctorId={user?.doctor_id}
                     />
                 </div>
@@ -343,3 +410,20 @@ function DoctorDashboard({ user, onLogout }) {
 }
 
 export default DoctorDashboard;
+
+
+/*
+{Bottom Row - Reviews & Additional Feature }
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+        {/* Left: Ratings and Reviews (Half Width)}
+        <RatingsSection 
+            ratingsData={ratingsData} 
+            doctorId={user?.doctor_id}
+        />
+
+        {/* Right: Medical Insights Dashboard (Half Width) }
+        <MedicalInsightsSection 
+            doctorId={user?.doctor_id}
+        />
+    </div>
+*/
