@@ -29,25 +29,127 @@ const PulsePointLogo = ({ className = "w-8 h-8" }) => (
         </svg>
     </div>
 );
+// Add this component before the PatientDashboard component
+const DoctorsList = ({ doctors, loading }) => {
+    if (loading) {
+        return (
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600 mx-auto mb-4"></div>
+                    <p className="text-slate-600">Loading doctors...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (doctors.length === 0) {
+        return (
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8">
+                <div className="text-center">
+                    <User className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-slate-800 mb-2">No Doctors Available</h3>
+                    <p className="text-slate-600">There are currently no doctors available for consultation.</p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8">
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-slate-800">Available Doctors</h2>
+                <div className="text-sm text-slate-500">
+                    {doctors.length} doctor{doctors.length !== 1 ? 's' : ''} available
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {doctors.map((doctor) => (
+                    <div
+                        key={doctor.doctor_id}
+                        className="bg-gradient-to-br from-white to-slate-50 rounded-xl border border-slate-200 p-6 hover:shadow-lg transition-all duration-200 hover:border-sky-300"
+                    >
+                        {/* Doctor Avatar */}
+                        <div className="flex items-center mb-4">
+                            <div className="w-16 h-16 bg-gradient-to-r from-sky-400 to-cyan-400 rounded-full flex items-center justify-center mr-4">
+                                <User className="w-8 h-8 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-slate-800">
+                                    Dr. {doctor.first_name} {doctor.last_name}
+                                </h3>
+                                <p className="text-sm text-slate-600">{doctor.department_name}</p>
+                            </div>
+                        </div>
+
+                        {/* Doctor Info */}
+                        <div className="space-y-2 mb-4">
+                            <div className="flex items-center text-sm text-slate-600">
+                                <span className="font-medium">Email:</span>
+                                <span className="ml-2">{doctor.email}</span>
+                            </div>
+
+                            {typeof doctor.avg_rating === 'number' || !isNaN(parseFloat(doctor.avg_rating)) ? (
+                                <div className="flex items-center text-sm text-slate-600">
+                                    <span className="font-medium">Rating:</span>
+                                    <div className="ml-2 flex items-center">
+                                        <span className="text-yellow-500">★</span>
+                                        <span className="ml-1">{parseFloat(doctor.avg_rating).toFixed(1)}</span>
+                                    </div>
+                                </div>
+                            ) : null}
+
+
+                            <div className="flex items-center text-sm">
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${doctor.is_active
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-red-100 text-red-800'
+                                    }`}>
+                                    {doctor.is_active ? 'Available' : 'Unavailable'}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex space-x-2">
+                            <button
+                                className="flex-1 px-4 py-2 bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={!doctor.is_active}
+                            >
+                                Book Appointment
+                            </button>
+                            <button
+                                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition-colors"
+                            >
+                                View Details
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 
 function PatientDashboard({ user, onLogout }) {
-    // ✅ ALL HOOKS DECLARED FIRST - No conditional calls
     const [patient, setPatient] = useState(null);
     const [healthLogs, setHealthLogs] = useState([]);
+    const [doctors, setDoctors] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [doctorsLoading, setDoctorsLoading] = useState(false);
     const [error, setError] = useState('');
     const [notifications] = useState(3);
+    const [activeTab, setActiveTab] = useState('dashboard');
 
-    // Navigation tabs
     const navTabs = [
-        { id: 'dashboard', label: 'Dashboard', active: true },
-        { id: 'doctors', label: 'Doctors', active: false },
-        { id: 'departments', label: 'Departments', active: false },
-        { id: 'appointments', label: 'Book Appointment', active: false },
-        { id: 'articles', label: 'Health Articles', active: false },
+        { id: 'dashboard', label: 'Dashboard' },
+        { id: 'doctors', label: 'Doctors' },
+        { id: 'departments', label: 'Departments' },
+        { id: 'appointments', label: 'Book Appointment' },
+        { id: 'articles', label: 'Health Articles' },
     ];
 
-    // ✅ User validation with useEffect instead of early return
     useEffect(() => {
         if (!user || !user.patient_id) {
             console.error('Invalid user data:', user);
@@ -59,8 +161,6 @@ function PatientDashboard({ user, onLogout }) {
         }
     }, [user, onLogout]);
 
-    // ✅ Enhanced fetchPatientData with proper error handling
-    // ✅ Enhanced fetchPatientData - Don't treat missing data as error
     const fetchPatientData = useCallback(async () => {
         if (!user?.patient_id) {
             console.error('No patient_id available');
@@ -72,21 +172,20 @@ function PatientDashboard({ user, onLogout }) {
             console.log('Fetching patient data for ID:', user.patient_id);
             const response = await axios.get(`/api/patients/${user.patient_id}`);
             console.log('Patient data received:', response.data);
-            
-            // ✅ ADD DEBUGGING CODE HERE
-        console.log('=== PATIENT DATA DEBUG ===');
-        console.log('Raw patient object:', response.data);
-        console.log('Patient ID value:', response.data?.patient_id);
-        console.log('Patient ID type:', typeof response.data?.patient_id);
-        console.log('Patient ID as string:', String(response.data?.patient_id));
-        console.log('Patient ID JSON:', JSON.stringify(response.data?.patient_id));
-            
+
+            // DEBUGGING CODE
+            console.log('=== PATIENT DATA DEBUG ===');
+            console.log('Raw patient object:', response.data);
+            console.log('Patient ID value:', response.data?.patient_id);
+            console.log('Patient ID type:', typeof response.data?.patient_id);
+            console.log('Patient ID as string:', String(response.data?.patient_id));
+            console.log('Patient ID JSON:', JSON.stringify(response.data?.patient_id));
+
             setPatient(response.data);
-            setError(''); // Clear any previous errors
+            setError('');
         } catch (error) {
             console.error('Error fetching patient data:', error);
             if (error.response?.status === 404) {
-                // Instead of error, create a basic patient object from user data
                 console.log('Patient profile not found, creating basic profile from user data');
                 const basicPatient = {
                     patient_id: user.patient_id,
@@ -115,8 +214,21 @@ function PatientDashboard({ user, onLogout }) {
         }
     }, [user?.patient_id, user?.username, user?.email, user?.user_id, onLogout]);
 
+    const fetchDoctors = useCallback(async () => {
+        setDoctorsLoading(true);
+        try {
+            const response = await axios.get('/api/doctors');
+            const filteredDoctors = response.data.filter(
+                doctor => doctor.department_name !== 'Unassigned'
+            );
+            setDoctors(filteredDoctors);
+        } catch (error) {
+            console.error('Error fetching doctors:', error);
+        } finally {
+            setDoctorsLoading(false);
+        }
+    }, []);
 
-    // ✅ Enhanced fetchHealthLogs with proper error handling
     const fetchHealthLogs = useCallback(async () => {
         if (!user?.patient_id) {
             console.error('No patient_id available for health logs');
@@ -130,13 +242,11 @@ function PatientDashboard({ user, onLogout }) {
             setHealthLogs(response.data);
         } catch (error) {
             console.error('Error fetching health logs:', error);
-            // Don't set error for health logs as it's not critical
         } finally {
             setLoading(false);
         }
     }, [user?.patient_id]);
 
-    // ✅ Enhanced useEffect with proper dependency management
     useEffect(() => {
         if (user?.patient_id) {
             fetchPatientData();
@@ -146,7 +256,6 @@ function PatientDashboard({ user, onLogout }) {
         }
     }, [fetchPatientData, fetchHealthLogs, user?.patient_id]);
 
-    // ✅ Enhanced handlePatientUpdate with validation
     const handlePatientUpdate = (updatedPatient) => {
         if (updatedPatient && updatedPatient.patient_id) {
             console.log('Patient updated successfully:', updatedPatient);
@@ -155,9 +264,13 @@ function PatientDashboard({ user, onLogout }) {
             console.error('Invalid patient update data:', updatedPatient);
         }
     };
+    const handleTabClick = (tabId) => {
+        setActiveTab(tabId);
+        if (tabId === 'doctors' && doctors.length === 0) {
+            fetchDoctors();
+        }
+    };
 
-    // ✅ CONDITIONAL RENDERING AFTER ALL HOOKS
-    // User validation check
     if (!user || !user.patient_id) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50 flex items-center justify-center">
@@ -247,9 +360,10 @@ function PatientDashboard({ user, onLogout }) {
                             {navTabs.map((tab) => (
                                 <button
                                     key={tab.id}
-                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${tab.active
-                                            ? 'bg-gradient-to-r from-sky-500 to-cyan-500 text-white shadow-md'
-                                            : 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
+                                    onClick={() => handleTabClick(tab.id)}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${activeTab === tab.id
+                                        ? 'bg-gradient-to-r from-sky-500 to-cyan-500 text-white shadow-md'
+                                        : 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
                                         }`}
                                 >
                                     {tab.label}
@@ -286,31 +400,61 @@ function PatientDashboard({ user, onLogout }) {
 
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-                {/* Enhanced Profile Card with null safety */}
-                <ProfileCard
-                    patient={patient}
-                    onPatientUpdate={handlePatientUpdate}
-                />
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-                    {/* Health Log Section */}
-                    <div className="lg:col-span-1">
-                        <HealthLogSection
-                            healthLogs={healthLogs}
-                            onUpdate={fetchHealthLogs}
-                            patientId={user?.patient_id}
+                {activeTab === 'dashboard' && (
+                    <>
+                        {/* Enhanced Profile Card with null safety */}
+                        <ProfileCard
+                            patient={patient}
+                            onPatientUpdate={handlePatientUpdate}
                         />
-                    </div>
 
-                    {/* Graph Section */}
-                    <div className="lg:col-span-2">
-                        <GraphSection healthLogs={healthLogs} />
-                    </div>
-                </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+                            {/* Health Log Section */}
+                            <div className="lg:col-span-1">
+                                <HealthLogSection
+                                    healthLogs={healthLogs}
+                                    onUpdate={fetchHealthLogs}
+                                    patientId={user?.patient_id}
+                                />
+                            </div>
 
-                {/* Medical Documents Section */}
-                <MedicalDocumentsSection patientId={user?.patient_id} />
+                            {/* Graph Section */}
+                            <div className="lg:col-span-2">
+                                <GraphSection healthLogs={healthLogs} />
+                            </div>
+                        </div>
+
+                        {/* Medical Documents Section */}
+                        <MedicalDocumentsSection patientId={user?.patient_id} />
+                    </>
+                )}
+
+                {activeTab === 'doctors' && (
+                    <DoctorsList doctors={doctors} loading={doctorsLoading} />
+                )}
+
+                {activeTab === 'departments' && (
+                    <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8">
+                        <h2 className="text-2xl font-bold text-slate-800 mb-4">Departments</h2>
+                        <p className="text-slate-600">Departments section coming soon...</p>
+                    </div>
+                )}
+
+                {activeTab === 'appointments' && (
+                    <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8">
+                        <h2 className="text-2xl font-bold text-slate-800 mb-4">Book Appointment</h2>
+                        <p className="text-slate-600">Appointment booking section coming soon...</p>
+                    </div>
+                )}
+
+                {activeTab === 'articles' && (
+                    <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8">
+                        <h2 className="text-2xl font-bold text-slate-800 mb-4">Health Articles</h2>
+                        <p className="text-slate-600">Health articles section coming soon...</p>
+                    </div>
+                )}
             </div>
+
         </div>
     );
 }

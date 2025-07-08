@@ -13,6 +13,7 @@ const getAllDoctors = async (req, res) => {
       JOIN "user" u ON d.user_id = u.user_id
       JOIN department dep ON d.department_id = dep.department_id
       WHERE u.is_active = true
+      AND dep.department_name != 'Unassigned'
       ORDER BY d.doctor_id ASC
     `;
     const result = await pool.query(query);

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { X, Clock, Calendar, MapPin, Users, Repeat, CalendarDays } from 'lucide-react';
+import { X, MapPin, Users, Repeat, CalendarDays } from 'lucide-react';
 import axios from 'axios';
 
 function ScheduleModal({ isOpen, onClose, doctorId, onScheduleAdded }) {
-    const [scheduleType, setScheduleType] = useState('recurring'); // 'recurring' or 'specific'
+    const [scheduleType, setScheduleType] = useState('recurring');
     const [formData, setFormData] = useState({
         weekday: '',
         specific_date: '',
@@ -40,7 +40,6 @@ function ScheduleModal({ isOpen, onClose, doctorId, onScheduleAdded }) {
                 ...formData
             };
 
-            // Clean up payload based on schedule type
             if (scheduleType === 'recurring') {
                 delete payload.specific_date;
                 payload.weekday = parseInt(payload.weekday);
@@ -49,6 +48,13 @@ function ScheduleModal({ isOpen, onClose, doctorId, onScheduleAdded }) {
                 delete payload.start_date;
                 delete payload.end_date;
             }
+
+            // Remove all empty string fields
+            Object.keys(payload).forEach(key => {
+                if (payload[key] === '' || payload[key] === null || payload[key] === undefined) {
+                    delete payload[key];
+                }
+            });
 
             await axios.post(endpoint, payload);
 
@@ -64,12 +70,11 @@ function ScheduleModal({ isOpen, onClose, doctorId, onScheduleAdded }) {
                 end_date: ''
             });
 
-            onScheduleAdded(); // Refresh parent component
-            onClose(); // Close modal
+            onScheduleAdded();
+            onClose();
         } catch (error) {
             console.error('Error creating schedule:', error);
 
-            // More detailed error handling
             if (error.response?.status === 500) {
                 alert('Database error. Please ensure the doctor_schedule table exists and try again.');
             } else if (error.response?.status === 400) {
@@ -117,8 +122,8 @@ function ScheduleModal({ isOpen, onClose, doctorId, onScheduleAdded }) {
                                 type="button"
                                 onClick={() => setScheduleType('recurring')}
                                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-all ${scheduleType === 'recurring'
-                                        ? 'bg-blue-50 border-blue-200 text-blue-700'
-                                        : 'bg-gray-50 border-gray-200 text-gray-600'
+                                    ? 'bg-blue-50 border-blue-200 text-blue-700'
+                                    : 'bg-gray-50 border-gray-200 text-gray-600'
                                     }`}
                             >
                                 <Repeat className="w-4 h-4" />
@@ -128,8 +133,8 @@ function ScheduleModal({ isOpen, onClose, doctorId, onScheduleAdded }) {
                                 type="button"
                                 onClick={() => setScheduleType('specific')}
                                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-all ${scheduleType === 'specific'
-                                        ? 'bg-purple-50 border-purple-200 text-purple-700'
-                                        : 'bg-gray-50 border-gray-200 text-gray-600'
+                                    ? 'bg-purple-50 border-purple-200 text-purple-700'
+                                    : 'bg-gray-50 border-gray-200 text-gray-600'
                                     }`}
                             >
                                 <CalendarDays className="w-4 h-4" />
