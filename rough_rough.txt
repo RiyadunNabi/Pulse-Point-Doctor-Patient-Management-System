@@ -1,0 +1,1000 @@
+well, didnt you show the available slots of the doctor (like u did on doctor schedule section), patient will just book clicking any of their preferred date slot. or did u give user the freedom to choose any date? no i dont want to chose random date. see how you show the slots in case of doctor dashboard: import React, { useState } from 'react';
+import { X, MapPin, Users, Repeat, CalendarDays } from 'lucide-react';
+import axios from 'axios';
+
+function ScheduleModal({ isOpen, onClose, doctorId, onScheduleAdded }) {
+    const [scheduleType, setScheduleType] = useState('recurring');
+    const [formData, setFormData] = useState({
+        weekday: '',
+        specific_date: '',
+        start_time: '',
+        end_time: '',
+        max_per_hour: 1,
+        location: '',
+        start_date: '',
+        end_date: ''
+    });
+    const [loading, setLoading] = useState(false);
+
+    const weekdays = [
+        { id: 0, name: 'Sunday' },
+        { id: 1, name: 'Monday' },
+        { id: 2, name: 'Tuesday' },
+        { id: 3, name: 'Wednesday' },
+        { id: 4, name: 'Thursday' },
+        { id: 5, name: 'Friday' },
+        { id: 6, name: 'Saturday' }
+    ];
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+
+        try {
+            const endpoint = scheduleType === 'recurring'
+                ? '/api/schedule/recurring'
+                : '/api/schedule/specific';
+
+            const payload = {
+                doctor_id: doctorId,
+                ...formData
+            };
+
+            if (scheduleType === 'recurring') {
+                delete payload.specific_date;
+                payload.weekday = parseInt(payload.weekday);
+            } else {
+                delete payload.weekday;
+                delete payload.start_date;
+                delete payload.end_date;
+            }
+
+            // Remove all empty string fields
+            Object.keys(payload).forEach(key => {
+                if (payload[key] === '' || payload[key] === null || payload[key] === undefined) {
+                    delete payload[key];
+                }
+            });
+
+            await axios.post(endpoint, payload);
+
+            // Reset form
+            setFormData({
+                weekday: '',
+                specific_date: '',
+                start_time: '',
+                end_time: '',
+                max_per_hour: 1,
+                location: '',
+                start_date: '',
+                end_date: ''
+            });
+
+            onScheduleAdded();
+            onClose();
+        } catch (error) {
+            console.error('Error creating schedule:', error);
+
+            if (error.response?.status === 500) {
+                alert('Database error. Please ensure the doctor_schedule table exists and try again.');
+            } else if (error.response?.status === 400) {
+                alert(`Validation error: ${error.response.data.error}`);
+            } else {
+                alert('Error creating schedule. Please check your internet connection and try again.');
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+                {/* Header */}
+                <div className="flex items-center justify-between p-6 border-b">
+                    <h2 className="text-xl font-bold text-slate-800">Add New Schedule</h2>
+                    <button
+                        onClick={onClose}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                    {/* Schedule Type Selection */}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-3">
+                            Schedule Type
+                        </label>
+                        <div className="flex space-x-4">
+                            <button
+                                type="button"
+                                onClick={() => setScheduleType('recurring')}
+                                className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-all ${scheduleType === 'recurring'
+                                    ? 'bg-blue-50 border-blue-200 text-blue-700'
+                                    : 'bg-gray-50 border-gray-200 text-gray-600'
+                                    }`}
+                            >
+                                <Repeat className="w-4 h-4" />
+                                <span>Weekly Recurring</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setScheduleType('specific')}
+                                className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-all ${scheduleType === 'specific'
+                                    ? 'bg-purple-50 border-purple-200 text-purple-700'
+                                    : 'bg-gray-50 border-gray-200 text-gray-600'
+                                    }`}
+                            >
+                                <CalendarDays className="w-4 h-4" />
+                                <span>Specific Date</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Weekday Selection (for recurring) */}
+                    {scheduleType === 'recurring' && (
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                Day of Week *
+                            </label>
+                            <select
+                                name="weekday"
+                                value={formData.weekday}
+                                onChange={handleInputChange}
+                                required
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                                <option value="">Select a day</option>
+                                {weekdays.map(day => (
+                                    <option key={day.id} value={day.id}>
+                                        {day.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
+                    {/* Specific Date Selection */}
+                    {scheduleType === 'specific' && (
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                Specific Date *
+                            </label>
+                            <input
+                                type="date"
+                                name="specific_date"
+                                value={formData.specific_date}
+                                onChange={handleInputChange}
+                                min={new Date().toISOString().split('T')[0]}
+                                required
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                        </div>
+                    )}
+
+                    {/* Time Selection */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                Start Time *
+                            </label>
+                            <input
+                                type="time"
+                                name="start_time"
+                                value={formData.start_time}
+                                onChange={handleInputChange}
+                                required
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                End Time *
+                            </label>
+                            <input
+                                type="time"
+                                name="end_time"
+                                value={formData.end_time}
+                                onChange={handleInputChange}
+                                required
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Max Patients Per Hour */}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <Users className="w-4 h-4 inline mr-1" />
+                            Max Patients Per Hour
+                        </label>
+                        <input
+                            type="number"
+                            name="max_per_hour"
+                            value={formData.max_per_hour}
+                            onChange={handleInputChange}
+                            min="1"
+                            max="10"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+
+                    {/* Location */}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <MapPin className="w-4 h-4 inline mr-1" />
+                            Location
+                        </label>
+                        <input
+                            type="text"
+                            name="location"
+                            value={formData.location}
+                            onChange={handleInputChange}
+                            placeholder="e.g., Room 101, Online"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+
+                    {/* Recurring Schedule Date Range */}
+                    {scheduleType === 'recurring' && (
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Start Date (Optional)
+                                </label>
+                                <input
+                                    type="date"
+                                    name="start_date"
+                                    value={formData.start_date}
+                                    onChange={handleInputChange}
+                                    min={new Date().toISOString().split('T')[0]}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    End Date (Optional)
+                                </label>
+                                <input
+                                    type="date"
+                                    name="end_date"
+                                    value={formData.end_date}
+                                    onChange={handleInputChange}
+                                    min={formData.start_date || new Date().toISOString().split('T')[0]}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Submit Button */}
+                    <div className="flex space-x-3 pt-4">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="flex-1 px-4 py-2 bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
+                        >
+                            {loading ? 'Creating...' : 'Create Schedule'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+import React, { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
+import { Clock, Calendar, Plus, Edit, Trash2, MapPin, Users, Repeat, CalendarDays } from 'lucide-react';
+import ScheduleModal from './ScheduleModal';
+
+function ScheduleSection({ doctorId }) {
+    const [scheduleConfig, setScheduleConfig] = useState({ recurring: [], specific: [] });
+    const [availableSlots, setAvailableSlots] = useState([]);
+    const [activeTab, setActiveTab] = useState('available');
+    const [loading, setLoading] = useState(true);
+    const [showAddModal, setShowAddModal] = useState(false);
+
+    // Standard weekday mapping (0=Sunday, 6=Saturday)
+    const weekdays = [
+        { id: 0, name: 'Sunday', short: 'Sun' },
+        { id: 1, name: 'Monday', short: 'Mon' },
+        { id: 2, name: 'Tuesday', short: 'Tue' },
+        { id: 3, name: 'Wednesday', short: 'Wed' },
+        { id: 4, name: 'Thursday', short: 'Thu' },
+        { id: 5, name: 'Friday', short: 'Fri' },
+        { id: 6, name: 'Saturday', short: 'Sat' }
+    ];
+
+    const fetchScheduleConfig = useCallback(async () => {
+        try {
+            const response = await axios.get(`/api/schedule/config/${doctorId}`);
+            setScheduleConfig(response.data);
+        } catch (error) {
+            console.error('Error fetching schedule config:', error);
+        }
+    }, [doctorId]);
+
+    const fetchAvailableSlots = useCallback(async () => {
+        try {
+            setLoading(true);
+            const startDate = new Date().toISOString().split('T')[0];
+            const endDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            
+            const response = await axios.get(`/api/schedule/available/${doctorId}`, {
+                params: { startDate, endDate }
+            });
+            setAvailableSlots(response.data);
+        } catch (error) {
+            console.error('Error fetching available slots:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [doctorId]);
+
+    useEffect(() => {
+        if (doctorId) {
+            fetchScheduleConfig();
+            fetchAvailableSlots();
+        }
+    }, [doctorId, fetchScheduleConfig, fetchAvailableSlots]);
+
+    const handleScheduleAdded = useCallback(() => {
+        fetchScheduleConfig();
+        fetchAvailableSlots();
+    }, [fetchScheduleConfig, fetchAvailableSlots]);
+
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric'
+        });
+    };
+
+    const formatTime = (timeString) => {
+        if (!timeString) return '';
+        return new Date(`1970-01-01T${timeString}`).toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        });
+    };
+
+    // Group available slots by date
+    const groupedSlots = availableSlots.reduce((acc, slot) => {
+        const date = slot.slot_date;
+        if (!acc[date]) acc[date] = [];
+        acc[date].push(slot);
+        return acc;
+    }, {});
+
+    // Handle delete schedule entry
+    const handleDeleteEntry = async (entryId) => {
+        if (!window.confirm('Are you sure you want to delete this schedule entry?')) return;
+        
+        try {
+            await axios.delete(`/api/schedule/${entryId}`);
+            fetchScheduleConfig();
+            fetchAvailableSlots();
+        } catch (error) {
+            console.error('Error deleting schedule entry:', error);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/50 p-6">
+                <div className="animate-pulse">
+                    <div className="h-6 bg-slate-200 rounded w-1/3 mb-6"></div>
+                    <div className="space-y-3">
+                        {[1,2,3,4,5].map(i => (
+                            <div key={i} className="h-16 bg-slate-100 rounded"></div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/50 p-6">
+            {/* Header with Tabs */}
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+                    <button
+                        onClick={() => setActiveTab('available')}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                            activeTab === 'available'
+                                ? 'bg-white text-blue-600 shadow-sm'
+                                : 'text-gray-600 hover:text-gray-900'
+                        }`}
+                    >
+                        <Calendar className="w-4 h-4 inline mr-2" />
+                        Available Slots
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('recurring')}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                            activeTab === 'recurring'
+                                ? 'bg-white text-blue-600 shadow-sm'
+                                : 'text-gray-600 hover:text-gray-900'
+                        }`}
+                    >
+                        <Repeat className="w-4 h-4 inline mr-2" />
+                        Weekly Schedule
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('specific')}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                            activeTab === 'specific'
+                                ? 'bg-white text-blue-600 shadow-sm'
+                                : 'text-gray-600 hover:text-gray-900'
+                        }`}
+                    >
+                        <CalendarDays className="w-4 h-4 inline mr-2" />
+                        Specific Dates
+                    </button>
+                </div>
+                
+                <button 
+                    onClick={() => setShowAddModal(true)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white rounded-lg text-sm transition-all duration-200"
+                >
+                    <Plus className="w-4 h-4" />
+                    <span>Add Schedule</span>
+                </button>
+            </div>
+
+            {/* Available Slots View */}
+            {activeTab === 'available' && (
+                <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-slate-800 mb-4">
+                        Available Appointment Slots (Next 3 Months)
+                    </h3>
+                    
+                    {Object.keys(groupedSlots).length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">
+                            <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                            <p>No available slots found. Add some schedules to see available appointments.</p>
+                        </div>
+                    ) : (
+                        <div className="grid gap-4 max-h-96 overflow-y-auto">
+                            {Object.entries(groupedSlots).map(([date, slots]) => (
+                                <div key={date} className="border rounded-lg p-4 bg-gradient-to-r from-blue-50 to-purple-50">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h4 className="font-medium text-slate-800">
+                                            {formatDate(date)}
+                                        </h4>
+                                        <span className="text-sm text-blue-600 font-medium">
+                                            {slots.length} slot{slots.length > 1 ? 's' : ''}
+                                        </span>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                                        {slots.map((slot, index) => (
+                                            <div key={`${date}-${index}`} className="bg-white rounded-md p-2 border border-blue-100">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center space-x-1">
+                                                        <Clock className="w-3 h-3 text-slate-500" />
+                                                        <span className="text-xs font-medium text-slate-700">
+                                                            {formatTime(slot.start_time)}
+                                                        </span>
+                                                    </div>
+                                                    <span className={`text-xs px-2 py-1 rounded-full ${
+                                                        slot.available_slots > 0 
+                                                            ? 'bg-green-100 text-green-700' 
+                                                            : 'bg-red-100 text-red-700'
+                                                    }`}>
+                                                        {slot.available_slots > 0 ? 'Available' : 'Full'}
+                                                    </span>
+                                                </div>
+                                                {slot.location && (
+                                                    <p className="text-xs text-slate-600 mt-1">{slot.location}</p>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Recurring Schedule View */}
+            {activeTab === 'recurring' && (
+                <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-slate-800 mb-4">
+                        Weekly Recurring Schedule
+                    </h3>
+                    
+                    <div className="space-y-3">
+                        {weekdays.map(day => {
+                            const daySchedules = scheduleConfig.recurring.filter(s => s.weekday === day.id);
+                            return (
+                                <div key={day.id} className={`border rounded-lg p-4 transition-all duration-200 ${
+                                    daySchedules.length > 0 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
+                                }`}>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center space-x-3">
+                                            <div className={`w-3 h-3 rounded-full ${
+                                                daySchedules.length > 0 ? 'bg-green-500' : 'bg-gray-400'
+                                            }`}></div>
+                                            <span className="font-medium text-slate-700">
+                                                {day.name}
+                                            </span>
+                                        </div>
+                                        
+                                        {daySchedules.length === 0 ? (
+                                            <span className="text-sm text-slate-500">No schedule</span>
+                                        ) : (
+                                            <span className="text-sm text-green-600 font-medium">
+                                                {daySchedules.length} schedule{daySchedules.length > 1 ? 's' : ''}
+                                            </span>
+                                        )}
+                                    </div>
+                                    
+                                    {daySchedules.length > 0 && (
+                                        <div className="space-y-2">
+                                            {daySchedules.map((schedule) => (
+                                                <div key={schedule.id} className="bg-white rounded-md p-3 border border-green-100">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center space-x-4">
+                                                            <div className="flex items-center space-x-2">
+                                                                <Clock className="w-4 h-4 text-slate-500" />
+                                                                <span className="text-sm font-medium text-slate-700">
+                                                                    {formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}
+                                                                </span>
+                                                            </div>
+                                                            
+                                                            {schedule.max_per_hour && (
+                                                                <div className="flex items-center space-x-1">
+                                                                    <Users className="w-4 h-4 text-blue-500" />
+                                                                    <span className="text-sm text-blue-600">
+                                                                        {schedule.max_per_hour}/hr
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                            
+                                                            {schedule.location && (
+                                                                <div className="flex items-center space-x-1">
+                                                                    <MapPin className="w-4 h-4 text-purple-500" />
+                                                                    <span className="text-sm text-purple-600">
+                                                                        {schedule.location}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        
+                                                        <div className="flex items-center space-x-2">
+                                                            <button
+                                                                onClick={() => handleDeleteEntry(schedule.id)}
+                                                                className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {/* Specific Dates View */}
+            {activeTab === 'specific' && (
+                <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-slate-800 mb-4">
+                        Specific Date Schedules
+                    </h3>
+                    
+                    {scheduleConfig.specific.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">
+                            <CalendarDays className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                            <p>No specific date schedules found. Add some to see them here.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {scheduleConfig.specific.map(schedule => (
+                                <div key={schedule.id} className="border rounded-lg p-4 bg-purple-50 border-purple-200">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-4">
+                                            <div>
+                                                <p className="font-medium text-slate-800">{formatDate(schedule.specific_date)}</p>
+                                                <div className="flex items-center space-x-2 mt-1">
+                                                    <Clock className="w-4 h-4 text-slate-500" />
+                                                    <span className="text-sm text-slate-600">
+                                                        {formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            {schedule.max_per_hour && (
+                                                <div className="flex items-center space-x-1">
+                                                    <Users className="w-4 h-4 text-purple-500" />
+                                                    <span className="text-sm text-purple-600">
+                                                        {schedule.max_per_hour}/hr
+                                                    </span>
+                                                </div>
+                                            )}
+                                            
+                                            {schedule.location && (
+                                                <div className="flex items-center space-x-1">
+                                                    <MapPin className="w-4 h-4 text-purple-500" />
+                                                    <span className="text-sm text-purple-600">
+                                                        {schedule.location}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        
+                                        <div className="flex items-center space-x-2">
+                                            <button
+                                                onClick={() => handleDeleteEntry(schedule.id)}
+                                                className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Schedule Statistics */}
+            <div className="mt-6 bg-slate-50 rounded-lg p-4">
+                <div className="grid grid-cols-4 gap-4 text-center">
+                    <div>
+                        <p className="text-2xl font-bold text-sky-600">
+                            {scheduleConfig.recurring.length + scheduleConfig.specific.length}
+                        </p>
+                        <p className="text-sm text-slate-600">Total Schedules</p>
+                    </div>
+                    <div>
+                        <p className="text-2xl font-bold text-green-600">
+                            {weekdays.filter(day => 
+                                scheduleConfig.recurring.some(s => s.weekday === day.id)
+                            ).length}
+                        </p>
+                        <p className="text-sm text-slate-600">Active Days</p>
+                    </div>
+                    <div>
+                        <p className="text-2xl font-bold text-purple-600">
+                            {scheduleConfig.specific.length}
+                        </p>
+                        <p className="text-sm text-slate-600">Specific Dates</p>
+                    </div>
+                    <div>
+                        <p className="text-2xl font-bold text-orange-600">
+                            {Object.keys(groupedSlots).length}
+                        </p>
+                        <p className="text-sm text-slate-600">Available Days</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Schedule Modal */}
+            {showAddModal && (
+                <ScheduleModal
+                    isOpen={showAddModal}
+                    onClose={() => setShowAddModal(false)}
+                    doctorId={doctorId}
+                    onScheduleAdded={handleScheduleAdded}
+                />
+            )}
+        </div>
+    );
+}
+
+export default ScheduleSection;
+
+i just want to show available days along with the free slots, after booking , patient will get to know his appointment time slot . patient wont be able to book apointment if no of patient id full for that slot day, moreover i have a View for this which previously u created. and used this table for schedule, the schema : 
+CREATE TABLE doctor_schedule (
+    id SERIAL PRIMARY KEY,
+    doctor_id INTEGER REFERENCES doctor(doctor_id) ON DELETE CASCADE,
+    
+    -- 'recurring' or 'specific'
+    schedule_type VARCHAR(10) NOT NULL CHECK (schedule_type IN ('recurring', 'specific')),
+    
+    -- recurring
+    weekday INTEGER CHECK (weekday BETWEEN 0 AND 6), -- 0 = Sunday, 6 = Saturday
+    
+    -- specific date
+    specific_date DATE,
+    
+    -- Common fields
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    max_per_hour INTEGER DEFAULT 1 CHECK (max_per_hour >= 1),
+    location TEXT,
+    
+    -- Recurring
+    is_active BOOLEAN DEFAULT TRUE,
+    start_date DATE, -- When recurring schedule starts
+    end_date DATE,   -- When recurring schedule ends (optional)
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Constraints
+    CONSTRAINT check_recurring_weekday CHECK (
+        (schedule_type = 'recurring' AND weekday IS NOT NULL AND specific_date IS NULL) OR
+        (schedule_type = 'specific' AND specific_date IS NOT NULL AND weekday IS NULL)
+    )
+);
+
+CREATE OR REPLACE VIEW available_appointment_slots AS
+WITH RECURSIVE date_series AS (
+    -- Generate dates for the next 3 months
+    SELECT CURRENT_DATE::DATE as slot_date
+    UNION ALL
+    SELECT (slot_date + INTERVAL '1 day')::DATE
+    FROM date_series
+    WHERE slot_date < (CURRENT_DATE + INTERVAL '3 months')::DATE
+),
+recurring_slots AS (
+    SELECT 
+        ds.doctor_id,
+        d.slot_date,
+        ds.start_time,
+        ds.end_time,
+        ds.max_per_hour,
+        ds.location,
+        ds.id as schedule_id,
+        'recurring' as source_type
+    FROM doctor_schedule ds
+    CROSS JOIN date_series d
+    WHERE ds.schedule_type = 'recurring'
+        AND ds.is_active = TRUE
+        AND EXTRACT(DOW FROM d.slot_date) = ds.weekday
+        AND d.slot_date >= COALESCE(ds.start_date, CURRENT_DATE)
+        AND (ds.end_date IS NULL OR d.slot_date <= ds.end_date)
+),
+specific_slots AS (
+    -- Get specific date slots
+    SELECT 
+        doctor_id,
+        specific_date as slot_date,
+        start_time,
+        end_time,
+        max_per_hour,
+        location,
+        id as schedule_id,
+        'specific' as source_type
+    FROM doctor_schedule
+    WHERE schedule_type = 'specific'
+        AND specific_date >= CURRENT_DATE
+        AND is_active = TRUE
+)
+SELECT * FROM recurring_slots
+UNION ALL
+SELECT * FROM specific_slots
+ORDER BY slot_date, start_time;
+ and CREATE TABLE appointment (
+    appointment_id SERIAL PRIMARY KEY,
+    doctor_id INTEGER REFERENCES doctor(doctor_id),
+    patient_id INTEGER REFERENCES patient(patient_id),
+    appointment_date DATE NOT NULL,
+    appointment_time TIME NOT NULL,  -- this will be calculated at booking time
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'completed', 'cancelled')),
+    reason TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+); const pool = require('../db/connection'); 
+
+// /api/appointments
+const createAppointment = async (req, res) => {
+    const { doctor_id, patient_id, appointment_date, reason } = req.body;
+
+    if (!doctor_id || !patient_id || !appointment_date) {
+        return res.status(400).json({ error: "doctor_id, patient_id, and appointment_date are required." });
+    }
+
+    try {
+        const date = new Date(appointment_date + 'T00:00:00');
+        const dayOfWeek = date.getDay();
+
+        const scheduleResult = await pool.query(
+            `SELECT start_time, end_time, max_per_hour FROM weekly_schedule WHERE doctor_id = $1 AND weekday = $2`,
+            [doctor_id, dayOfWeek]
+        );
+
+        if (scheduleResult.rows.length === 0) {
+            return res.status(400).json({ error: "The doctor is not available on the selected day." });
+        }
+
+        const schedule = scheduleResult.rows[0];
+        const { start_time, end_time, max_per_hour } = schedule;
+
+        const slotDurationMinutes = 60 / max_per_hour;
+
+        const lastAppointmentResult = await pool.query(
+            `SELECT MAX(appointment_time) as last_time FROM appointment WHERE doctor_id = $1 AND appointment_date = $2 AND status != 'cancelled'`,
+            [doctor_id, appointment_date]
+        );
+
+        let nextSlotTime;
+
+        if (lastAppointmentResult.rows[0].last_time === null) {
+            nextSlotTime = start_time;
+        } else {
+            const lastTime = lastAppointmentResult.rows[0].last_time;
+            const lastTimeParts = lastTime.split(':').map(Number); // [HH, MM, SS]
+
+            const lastTimeDateObj = new Date();
+            lastTimeDateObj.setHours(lastTimeParts[0], lastTimeParts[1], lastTimeParts[2]);
+
+        
+            lastTimeDateObj.setMinutes(lastTimeDateObj.getMinutes() + slotDurationMinutes);
+
+            // "HH:mm:ss"
+            nextSlotTime = lastTimeDateObj.toTimeString().split(' ')[0];
+        }
+
+        if (nextSlotTime >= end_time) {
+            return res.status(400).json({ error: "Sorry, the doctor is fully booked for this day." });
+        }
+
+        const createQuery = `
+          INSERT INTO appointment (doctor_id, patient_id, appointment_date, appointment_time, reason)
+          VALUES ($1, $2, $3, $4, $5)
+          RETURNING *
+        `;
+        const result = await pool.query(createQuery, [doctor_id, patient_id, appointment_date, nextSlotTime, reason]);
+
+        res.status(201).json(result.rows[0]);
+
+    } catch (err) {
+        console.error("Error booking appointment:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+// @route   GET /api/appointments/:id
+const getAppointmentById = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const query = `
+            SELECT 
+                a.*, 
+                doc.first_name as doctor_first_name, doc.last_name as doctor_last_name,
+                pat.first_name as patient_first_name, pat.last_name as patient_last_name,
+                dept.department_name
+            FROM appointment a
+            JOIN doctor doc ON a.doctor_id = doc.doctor_id
+            JOIN patient pat ON a.patient_id = pat.patient_id
+            JOIN department dept ON doc.department_id = dept.department_id
+            WHERE a.appointment_id = $1
+        `;
+        const result = await pool.query(query, [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Appointment not found." });
+        }
+        res.status(200).json(result.rows[0]);
+    } catch (err) {
+        console.error("Error fetching appointment:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+// GET /api/appointments/doctor/:doctorId
+const getAppointmentsByDoctor = async (req, res) => {
+    const { doctorId } = req.params;
+    try {
+        const query = `
+            SELECT a.appointment_id, a.appointment_date, a.appointment_time, a.status, 
+                   p.first_name, p.last_name
+            FROM appointment a
+            JOIN patient p ON a.patient_id = p.patient_id
+            WHERE a.doctor_id = $1
+            ORDER BY a.appointment_date, a.appointment_time
+        `;
+        const result = await pool.query(query, [doctorId]);
+        res.status(200).json(result.rows);
+    } catch (err) {
+        console.error("Error fetching doctor's appointments:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+// /api/appointments/patient/:patientId
+const getAppointmentsByPatient = async (req, res) => {
+    const { patientId } = req.params;
+    try {
+        const query = `
+            SELECT a.appointment_id, a.appointment_date, a.appointment_time, a.status, 
+                   d.first_name, d.last_name, dep.department_name
+            FROM appointment a
+            JOIN doctor d ON a.doctor_id = d.doctor_id
+            JOIN department dep ON d.department_id = dep.department_id
+            WHERE a.patient_id = $1
+            ORDER BY a.appointment_date, a.appointment_time
+        `;
+        const result = await pool.query(query, [patientId]);
+        res.status(200).json(result.rows);
+    } catch (err) {
+        console.error("Error fetching patient's appointments:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+//  /api/appointments/:id
+const updateAppointment = async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+        return res.status(400).json({ error: "Status field is required for an update." });
+    }
+    const allowedStatuses = ["pending", "confirmed", "completed", "cancelled"];
+    if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({ error: "Invalid status value." });
+    }
+
+    try {
+        const result = await pool.query(
+            `UPDATE appointment SET status = $1 WHERE appointment_id = $2 RETURNING *`,
+            [status, id]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Appointment not found." });
+        }
+        res.status(200).json(result.rows[0]);
+    } catch (err) {
+        console.error("Error updating appointment:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+//  /api/appointments/:id
+const cancelAppointment = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query(
+            `UPDATE appointment SET status = 'cancelled' WHERE appointment_id = $1 RETURNING *`,
+            [id]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Appointment not found." });
+        }
+        res.status(204).send(); // Success, no content
+    } catch (err) {
+        console.error("Error cancelling appointment:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+module.exports = {
+    createAppointment,
+    getAppointmentById,
+    getAppointmentsByDoctor,
+    getAppointmentsByPatient,
+    updateAppointment,
+    cancelAppointment,
+};
