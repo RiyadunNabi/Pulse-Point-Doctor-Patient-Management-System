@@ -131,7 +131,7 @@ function PatientDashboard({ user, onLogout }) {
                 )}
 
                 {activeTab === 'doctors' && (
-                    <DoctorsList doctors={doctors} loading={doctorsLoading} />
+                    <DoctorsList doctors={doctors} loading={doctorsLoading} user={user} />
                 )}
 
                 {activeTab === 'departments' && (
