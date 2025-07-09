@@ -91,6 +91,11 @@ const PatientBookingModal = ({ doctorId, user, isOpen, onClose, onBookingSuccess
                 // patient_id: user?.patient_id,
                 patient_id: user.patient_id,
                 appointment_date: slot.date,
+                // appointment_date: (
+                //     typeof slot.date === 'string'
+                //     ? slot.date.split('T')[0]
+                //     : slot.date.toISOString().split('T')[0]
+                // ),
                 start_time: slot.start_time,        // window start
                 end_time: slot.end_time,          // window end
                 max_per_hour: slot.max_per_hour,   // slots per hour
