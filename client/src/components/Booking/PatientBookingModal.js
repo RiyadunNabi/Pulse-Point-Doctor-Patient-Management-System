@@ -10,7 +10,6 @@ const PatientBookingModal = ({ doctorId, user, isOpen, onClose, onBookingSuccess
     const [loading, setLoading] = useState(false);
     const [bookingLoading, setBookingLoading] = useState(false);
 
-    // Fetch available slots (same as doctor dashboard)
     const fetchAvailableSlots = async () => {
         if (!doctorId) return;
 
@@ -30,7 +29,6 @@ const PatientBookingModal = ({ doctorId, user, isOpen, onClose, onBookingSuccess
         }
     };
 
-    // Group slots by date (same logic as doctor dashboard)
     const groupedSlots = availableSlots.reduce((acc, slot) => {
         const date = slot.slot_date;
         if (!acc[date]) acc[date] = [];
@@ -38,7 +36,6 @@ const PatientBookingModal = ({ doctorId, user, isOpen, onClose, onBookingSuccess
         return acc;
     }, {});
 
-    // Format date for display
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         const today = new Date();
@@ -59,7 +56,6 @@ const PatientBookingModal = ({ doctorId, user, isOpen, onClose, onBookingSuccess
         }
     };
 
-    // Format time for display
     const formatTime = (timeString) => {
         const [hours, minutes] = timeString.split(':');
         const hour = parseInt(hours);
@@ -68,7 +64,6 @@ const PatientBookingModal = ({ doctorId, user, isOpen, onClose, onBookingSuccess
         return `${displayHour}:${minutes} ${ampm}`;
     };
 
-    // Handle slot selection
     const handleSlotSelect = (date, slot) => {
         setSelectedSlot({
             date,
@@ -78,7 +73,6 @@ const PatientBookingModal = ({ doctorId, user, isOpen, onClose, onBookingSuccess
         });
     };
 
-    // Handle booking submission
     const handleBooking = async () => {
         const slot = selectedSlot;
 
@@ -135,14 +129,12 @@ const PatientBookingModal = ({ doctorId, user, isOpen, onClose, onBookingSuccess
         }
     };
 
-    // Handle modal close
     const handleClose = () => {
         setSelectedSlot(null);
         setReason('');
         onClose();
     };
 
-    // Fetch slots when modal opens
     useEffect(() => {
         if (isOpen && doctorId) {
             fetchAvailableSlots();

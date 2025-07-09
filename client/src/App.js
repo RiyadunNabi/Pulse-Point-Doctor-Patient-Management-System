@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import AuthPage from './components/AuthPage';
 import PatientDashboard from './components/PatientDashboard/PatientDashboard';
 import DoctorDashboard from './components/DoctorDashboard/DoctorDashboard';
+import './utils/axiosConfig'; // Add this import at the top
+
 
 function App() {
   const [user, setUser] = useState(null);

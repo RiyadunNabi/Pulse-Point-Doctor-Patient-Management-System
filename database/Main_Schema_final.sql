@@ -72,30 +72,24 @@ CREATE TABLE weekly_schedule (
     location TEXT
 );
 
--- Updated schedule table to support both recurring and specific dates
 CREATE TABLE doctor_schedule (
     id SERIAL PRIMARY KEY,
     doctor_id INTEGER REFERENCES doctor(doctor_id) ON DELETE CASCADE,
-    
-    -- Schedule type: 'recurring' or 'specific'
+
     schedule_type VARCHAR(10) NOT NULL CHECK (schedule_type IN ('recurring', 'specific')),
-    
-    -- For recurring schedules
+
     weekday INTEGER CHECK (weekday BETWEEN 0 AND 6), -- 0 = Sunday, 6 = Saturday
-    
-    -- For specific date schedules
+
     specific_date DATE,
-    
-    -- Common fields
+
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
     max_per_hour INTEGER DEFAULT 1 CHECK (max_per_hour >= 1),
     location TEXT,
-    
-    -- Recurring schedule settings
+ 
     is_active BOOLEAN DEFAULT TRUE,
-    start_date DATE, -- When recurring schedule starts
-    end_date DATE,   -- When recurring schedule ends (optional)
+    start_date DATE,
+    end_date DATE, 
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -108,10 +102,8 @@ CREATE TABLE doctor_schedule (
 );
 
 ----------------------------------------------------------------------------------------------------
--- Create available appointment slots view (FIXED VERSION)
 CREATE OR REPLACE VIEW available_appointment_slots AS
 WITH RECURSIVE date_series AS (
-    -- Generate dates for the next 3 months (FIXED: Cast to DATE)
     SELECT CURRENT_DATE::DATE as slot_date
     UNION ALL
     SELECT (slot_date + INTERVAL '1 day')::DATE
@@ -119,7 +111,6 @@ WITH RECURSIVE date_series AS (
     WHERE slot_date < (CURRENT_DATE + INTERVAL '3 months')::DATE
 ),
 recurring_slots AS (
-    -- Generate slots from recurring schedules
     SELECT 
         ds.doctor_id,
         d.slot_date,
@@ -138,7 +129,6 @@ recurring_slots AS (
         AND (ds.end_date IS NULL OR d.slot_date <= ds.end_date)
 ),
 specific_slots AS (
-    -- Get specific date slots
     SELECT 
         doctor_id,
         specific_date as slot_date,

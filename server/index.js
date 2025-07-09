@@ -43,7 +43,7 @@ app.use('/api/auth', authRoutes);
 app.use("/api/users", userRoutes);
 //----------------------------------
 
-// app.use(authenticateToken);
+app.use(authenticateToken);
 
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/departments", departmentRoutes);

@@ -1,4 +1,4 @@
-// File: client/src/components/DoctorDashboard/AppointmentStatsSection.js
+// client/src/components/DoctorDashboard/AppointmentStatsSection.js
 
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, CheckCircle, Users, TrendingUp, AlertCircle } from 'lucide-react';
