@@ -11,6 +11,7 @@ import UpcomingAppointmentsSection from './UpcomingAppointmentsSection';
 import QuickStatsWidget from './QuickStatsWidget';
 import HealthInsightsWidget from './HealthInsightsWidget';
 import MedicalInsightsSection from './MedicalInsightsSection';
+import ManageAppointments from './ManageAppointments';
 
 // Pulse Point Logo Component (reused from PatientDashboard)
 const PulsePointLogo = ({ className = "w-8 h-8" }) => (
@@ -46,6 +47,7 @@ function DoctorDashboard({ user, onLogout }) {
     const [error, setError] = useState('');
     const [notifications] = useState(5);
     const [scheduleData, setScheduleData] = useState([]);
+    const [showManageAppointments, setShowManageAppointments] = useState(false);
 
     // Navigation tabs for doctors
     const navTabs = [
@@ -193,6 +195,13 @@ function DoctorDashboard({ user, onLogout }) {
         }
     };
 
+    const handleNavigateToManageAppointments = () => {
+        setShowManageAppointments(true);
+    };
+    const handleBackFromManageAppointments = () => {
+        setShowManageAppointments(false);
+    };
+
     // Error handling
     if (!user || !user.doctor_id) {
         return (
@@ -254,6 +263,14 @@ function DoctorDashboard({ user, onLogout }) {
             </div>
         );
     }
+    if (showManageAppointments) {
+    return (
+      <ManageAppointments
+        doctorId={user.doctor_id}
+        onBack={handleBackFromManageAppointments}
+      />
+    );
+  }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50">
@@ -333,6 +350,7 @@ function DoctorDashboard({ user, onLogout }) {
                         onUpdate={fetchAppointments}
                         doctorId={user?.doctor_id}
                         layout="horizontal" // New prop for horizontal layout
+                        onNavigateToManage={handleNavigateToManageAppointments}
                     />
                 </div>
 

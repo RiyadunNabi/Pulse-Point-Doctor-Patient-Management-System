@@ -1,13 +1,12 @@
-const pool = require('../db/connection');
 
 // @desc    Book a new appointment
 // @route   POST /api/appointments
 // const createAppointment = async (req, res) => {
-//     // const { doctor_id, patient_id, appointment_date, reason } = req.body;
+    //     // const { doctor_id, patient_id, appointment_date, reason } = req.body;
 //     const {
-//         doctor_id,
-//         patient_id,
-//         appointment_date,
+    //         doctor_id,
+    //         patient_id,
+    //         appointment_date,
 //         start_time,
 //         end_time,
 //         max_per_hour,
@@ -22,47 +21,47 @@ const pool = require('../db/connection');
 //         !end_time ||
 //         !max_per_hour
 //     ) {
-//         return res.status(400).json({
-//             error:
-//                 "doctor_id, patient_id, appointment_date, start_time, end_time and max_per_hour are required."
-//         });
-//     }
-
-//     try {
+    //         return res.status(400).json({
+        //             error:
+        //                 "doctor_id, patient_id, appointment_date, start_time, end_time and max_per_hour are required."
+        //         });
+        //     }
+        
+        //     try {
 //         console.log("Booking payload:", req.body);
 
 //         // const date = new Date(appointment_date + 'T00:00:00');
 //         // const dayOfWeek = date.getDay();
 
 //         // const scheduleResult = await pool.query(
-//         //     `SELECT start_time, end_time, max_per_hour FROM weekly_schedule WHERE doctor_id = $1 AND weekday = $2`,
-//         //     [doctor_id, dayOfWeek]
-//         // );
+    //         //     `SELECT start_time, end_time, max_per_hour FROM weekly_schedule WHERE doctor_id = $1 AND weekday = $2`,
+    //         //     [doctor_id, dayOfWeek]
+    //         // );
 
-//         // if (scheduleResult.rows.length === 0) {
-//         //     return res.status(400).json({ error: "The doctor is not available on the selected day." });
-//         // }
-
-//         // const schedule = scheduleResult.rows[0];
+    //         // if (scheduleResult.rows.length === 0) {
+        //         //     return res.status(400).json({ error: "The doctor is not available on the selected day." });
+        //         // }
+        
+        //         // const schedule = scheduleResult.rows[0];
 //         // const { start_time, end_time, max_per_hour } = schedule;
 
 //         const slotDurationMinutes = 60 / Number(max_per_hour);
 
 //         const lastAppointmentResult = await pool.query(
-//             `SELECT MAX(appointment_time) as last_time FROM appointment WHERE doctor_id = $1 AND appointment_date = $2 AND status != 'cancelled'`,
-//             [doctor_id, appointment_date]
-//         );
-
+    //             `SELECT MAX(appointment_time) as last_time FROM appointment WHERE doctor_id = $1 AND appointment_date = $2 AND status != 'cancelled'`,
+    //             [doctor_id, appointment_date]
+    //         );
+    
 //         let nextSlotTime;
 
 //         if (lastAppointmentResult.rows[0].last_time === null) {
 //             nextSlotTime = start_time;
 //         } else {
-//             const lastTime = lastAppointmentResult.rows[0].last_time;
-//             const lastTimeParts = lastTime.split(':').map(Number); // [HH, MM, SS]
-
-//             const lastTimeDateObj = new Date();
-//             lastTimeDateObj.setHours(lastTimeParts[0], lastTimeParts[1], lastTimeParts[2]);
+    //             const lastTime = lastAppointmentResult.rows[0].last_time;
+    //             const lastTimeParts = lastTime.split(':').map(Number); // [HH, MM, SS]
+    
+    //             const lastTimeDateObj = new Date();
+    //             lastTimeDateObj.setHours(lastTimeParts[0], lastTimeParts[1], lastTimeParts[2]);
 
 
 //             lastTimeDateObj.setMinutes(lastTimeDateObj.getMinutes() + slotDurationMinutes);
@@ -72,7 +71,7 @@ const pool = require('../db/connection');
 //         }
 
 //         if (nextSlotTime >= end_time) {
-//             return res.status(400).json({ error: "Sorry, the doctor is fully booked for this day." });
+    //             return res.status(400).json({ error: "Sorry, the doctor is fully booked for this day." });
 //         }
 
 //         const createQuery = `
@@ -85,7 +84,7 @@ const pool = require('../db/connection');
 //         res.status(201).json(result.rows[0]);
 
 //     } catch (err) {
-//         console.error("Error booking appointment:", err);
+    //         console.error("Error booking appointment:", err);
 //         // res.status(500).json({ error: "Internal server error" });
 //         res.status(500).json({ error: err.message });
 //     }
@@ -93,10 +92,10 @@ const pool = require('../db/connection');
 
 // // appointmentController.js
 // const createAppointment = async (req, res) => {
-//     const {
-//         doctor_id,
-//         patient_id,
-//         appointment_date,
+    //     const {
+        //         doctor_id,
+        //         patient_id,
+        //         appointment_date,
 //         start_time,
 //         end_time,
 //         max_per_hour,
@@ -111,21 +110,21 @@ const pool = require('../db/connection');
 //         !end_time ||        // Check for end_time
 //         !max_per_hour       // Check for max_per_hour
 //     ) {
-//         return res.status(400).json({
+    //         return res.status(400).json({
 //             error: "doctor_id, patient_id, appointment_date, start_time, end_time and max_per_hour are required."
 //         });
 //     }
 
 //     try {
-//         // 1) Check capacity
-//         const { rows } = await pool.query(
-//             `SELECT GREATEST(0, max_per_hour - COALESCE(booked_count,0)) AS available_slots
-//        FROM available_appointment_slots aas
+    //         // 1) Check capacity
+    //         const { rows } = await pool.query(
+        //             `SELECT GREATEST(0, max_per_hour - COALESCE(booked_count,0)) AS available_slots
+        //        FROM available_appointment_slots aas
 //        LEFT JOIN (
-//          SELECT appointment_date,
-//                 DATE_TRUNC('hour', appointment_time) AS hour_slot,
-//                 doctor_id,
-//                 COUNT(*) AS booked_count
+    //          SELECT appointment_date,
+    //                 DATE_TRUNC('hour', appointment_time) AS hour_slot,
+    //                 doctor_id,
+    //                 COUNT(*) AS booked_count
 //          FROM appointment
 //          WHERE status != 'cancelled'
 //          GROUP BY appointment_date, hour_slot, doctor_id
@@ -139,11 +138,11 @@ const pool = require('../db/connection');
 //             [doctor_id, appointment_date, appointment_time]
 //         );
 //         if (rows.length === 0 || rows[0].available_slots < 1) {
-//             return res.status(400).json({ error: "Sorry, that slot is fully booked." });
-//         }
+    //             return res.status(400).json({ error: "Sorry, that slot is fully booked." });
+    //         }
 
-//         // 2) Insert exactly the slot the UI picked
-//         const insert = await pool.query(
+    //         // 2) Insert exactly the slot the UI picked
+    //         const insert = await pool.query(
 //             `INSERT INTO appointment
 //          (doctor_id, patient_id, appointment_date, appointment_time, reason)
 //        VALUES ($1, $2, $3::date, $4::time, $5)
@@ -153,10 +152,12 @@ const pool = require('../db/connection');
 
 //         res.status(201).json(insert.rows[0]);
 //     } catch (err) {
-//         console.error(err);
-//         res.status(500).json({ error: err.message });
+    //         console.error(err);
+    //         res.status(500).json({ error: err.message });
 //     }
 // };
+
+const pool = require('../db/connection');
 
 // Corrected code for server/controllers/appointmentController.js
 const createAppointment = async (req, res) => {
@@ -368,11 +369,63 @@ const cancelAppointment = async (req, res) => {
     }
 };
 
+// // @route   GET /api/appointments/doctor/:doctorId/status/:status
+// const getAppointmentsByDoctorAndStatus = async (req, res) => {
+//     const { doctorId, status } = req.params;
+    
+//     try {
+//         const query = `
+//             SELECT 
+//                 a.appointment_id, 
+//                 a.appointment_date, 
+//                 a.appointment_time, 
+//                 a.status, 
+//                 a.reason,
+//                 a.created_at,
+//                 p.patient_id,
+//                 p.first_name as patient_first_name, 
+//                 p.last_name as patient_last_name,
+//                 p.phone_no as patient_phone,
+//                 u.email         AS patient_email,
+//                 p.date_of_birth,
+//                 p.gender as patient_gender,
+//                 p.address as patient_address
+//             FROM appointment a
+//             JOIN patient p ON a.patient_id = p.patient_id
+//             JOIN "user"    u ON p.user_id = u.user_id
+//             WHERE a.doctor_id = $1 AND a.status = $2
+//             ORDER BY a.appointment_date ASC, a.appointment_time ASC
+//         `;
+//         const result = await pool.query(query, [doctorId, status]);
+//         res.status(200).json(result.rows);
+//     } catch (err) {
+//         console.error(`Error fetching ${status} appointments:`, err);
+//         res.status(500).json({ error: "Internal server error" });
+//     }
+// };
+// server/controllers/appointmentController.js
+const getAppointmentsByDoctorAndStatus = async (req, res) => {
+  const { doctorId, status } = req.params;
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM get_appointments_by_doctor_and_status($1, $2)',
+      [doctorId, status]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching appointments:', err);
+    // res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
 module.exports = {
     createAppointment,
     getAppointmentById,
     getAppointmentsByDoctor,
     getAppointmentsByPatient,
+    getAppointmentsByDoctorAndStatus,
     updateAppointment,
     cancelAppointment,
 };

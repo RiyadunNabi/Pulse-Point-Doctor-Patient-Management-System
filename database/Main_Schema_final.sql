@@ -101,56 +101,6 @@ CREATE TABLE doctor_schedule (
     )
 );
 
-----------------------------------------------------------------------------------------------------
-CREATE OR REPLACE VIEW available_appointment_slots AS
-WITH RECURSIVE date_series AS (
-    SELECT CURRENT_DATE::DATE as slot_date
-    UNION ALL
-    SELECT (slot_date + INTERVAL '1 day')::DATE
-    FROM date_series
-    WHERE slot_date < (CURRENT_DATE + INTERVAL '3 months')::DATE
-),
-recurring_slots AS (
-    SELECT 
-        ds.doctor_id,
-        d.slot_date,
-        ds.start_time,
-        ds.end_time,
-        ds.max_per_hour,
-        ds.location,
-        ds.id as schedule_id,
-        'recurring' as source_type
-    FROM doctor_schedule ds
-    CROSS JOIN date_series d
-    WHERE ds.schedule_type = 'recurring'
-        AND ds.is_active = TRUE
-        AND EXTRACT(DOW FROM d.slot_date) = ds.weekday
-        AND d.slot_date >= COALESCE(ds.start_date, CURRENT_DATE)
-        AND (ds.end_date IS NULL OR d.slot_date <= ds.end_date)
-),
-specific_slots AS (
-    SELECT 
-        doctor_id,
-        specific_date as slot_date,
-        start_time,
-        end_time,
-        max_per_hour,
-        location,
-        id as schedule_id,
-        'specific' as source_type
-    FROM doctor_schedule
-    WHERE schedule_type = 'specific'
-        AND specific_date >= CURRENT_DATE
-        AND is_active = TRUE
-)
-SELECT * FROM recurring_slots
-UNION ALL
-SELECT * FROM specific_slots
-ORDER BY slot_date, start_time;
-
------------------------------------------------------------------------------------------
-
-
 -- APPOINTMENT
 -- CREATE TABLE appointment (
 --     appointment_id SERIAL PRIMARY KEY,
@@ -176,6 +126,7 @@ CREATE TABLE appointment (
     reason TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 -- REVIEWS
 CREATE TABLE reviews (

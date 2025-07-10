@@ -1,0 +1,155 @@
+Pulse-Point-Doctor-Patient-Management-System/
+├─ client
+│  ├─ .gitignore
+│  ├─ README.md
+│  ├─ package-lock.json
+│  ├─ package.json
+│  ├─ postcss.config.js
+│  ├─ public
+│  │  ├─ favicon.ico
+│  │  ├─ index.html
+│  │  ├─ logo192.png
+│  │  ├─ logo512.png
+│  │  ├─ manifest.json
+│  │  └─ robots.txt
+│  ├─ src
+│  │  ├─ App.css
+│  │  ├─ App.js
+│  │  ├─ App.test.js
+│  │  ├─ components
+│  │  │  ├─ AuthPage.js
+│  │  │  ├─ Booking
+│  │  │  │  └─ PatientBookingModal.js
+│  │  │  ├─ DoctorDashboard
+│  │  │  │  ├─ AppointmentStatsSection.js
+│  │  │  │  ├─ DoctorDashboard.css
+│  │  │  │  ├─ DoctorDashboard.js
+│  │  │  │  ├─ DoctorProfileCard.js
+│  │  │  │  ├─ EditDoctorProfileModal
+│  │  │  │  │  ├─ DoctorProfileForm.js
+│  │  │  │  │  ├─ DoctorProfilePhotoSection.js
+│  │  │  │  │  └─ EditDoctorProfileModal.js
+│  │  │  │  ├─ HealthInsightsWidget.js
+│  │  │  │  ├─ MedicalInsightsSection.js
+│  │  │  │  ├─ PatientAnalyticsSection.js
+│  │  │  │  ├─ QuickStatsWidget.js
+│  │  │  │  ├─ RatingsSection.js
+│  │  │  │  ├─ RevenueSection.js
+│  │  │  │  ├─ ScheduleModal.js
+│  │  │  │  ├─ ScheduleSection.js
+│  │  │  │  └─ UpcomingAppointmentsSection.js
+│  │  │  ├─ DoctorsList.js
+│  │  │  ├─ InputField.js
+│  │  │  ├─ LoginForm.js
+│  │  │  ├─ PatientDashboard
+│  │  │  │  ├─ DashboardContent
+│  │  │  │  │  ├─ AppointmentsView.js
+│  │  │  │  │  ├─ ArticlesView.js
+│  │  │  │  │  ├─ DashboardView.js
+│  │  │  │  │  └─ DepartmentsView.js
+│  │  │  │  ├─ DoctorsSection
+│  │  │  │  │  ├─ DoctorCard.js
+│  │  │  │  │  ├─ DoctorsList.js
+│  │  │  │  │  └─ index.js
+│  │  │  │  ├─ EditHealthLogModal
+│  │  │  │  │  ├─ EditHealthLogModal.js
+│  │  │  │  │  ├─ HealthLogForm.js
+│  │  │  │  │  └─ index.js
+│  │  │  │  ├─ EditProfileModal
+│  │  │  │  │  ├─ EditProfileModal.js
+│  │  │  │  │  ├─ ProfileForm.js
+│  │  │  │  │  └─ ProfilePhotoSection.js
+│  │  │  │  ├─ GraphSection.js
+│  │  │  │  ├─ GraphTabs.js
+│  │  │  │  ├─ HealthLogSection.js
+│  │  │  │  ├─ MedicalDocumentsModal
+│  │  │  │  │  ├─ DocumentList.js
+│  │  │  │  │  ├─ DocumentUploadForm.js
+│  │  │  │  │  └─ MedicalDocumentsModal.js
+│  │  │  │  ├─ MedicalDocumentsSection.js
+│  │  │  │  ├─ Navigation
+│  │  │  │  │  ├─ DashboardNavigation.js
+│  │  │  │  │  └─ PulsePointLogo.js
+│  │  │  │  ├─ PatientDashboard.js
+│  │  │  │  ├─ ProfileCard.js
+│  │  │  │  ├─ hooks
+│  │  │  │  │  ├─ useDoctors.js
+│  │  │  │  │  ├─ useHealthLogs.js
+│  │  │  │  │  └─ usePatientData.js
+│  │  │  │  ├─ unnecessary_AppointmentModal
+│  │  │  │  │  └─ AppointmentModal.js
+│  │  │  │  └─ utils
+│  │  │  │     └─ constants.js
+│  │  │  ├─ ProtectedRoute.js
+│  │  │  └─ shared
+│  │  │     ├─ InputField.js
+│  │  │     └─ Modal.js
+│  │  ├─ index.css
+│  │  ├─ index.js
+│  │  ├─ logo.svg
+│  │  ├─ reportWebVitals.js
+│  │  ├─ setupTests.js
+│  │  └─ utils
+│  │     └─ axiosConfig.js
+│  └─ tailwind.config.js
+├─ databas
+│  └─ Main_Schema_final.sq
+└─ server
+   ├─ controllers
+   │  ├─ appointmentController.js
+   │  ├─ authController.js
+   │  ├─ bookmarkedDoctorController.js
+   │  ├─ departmentController.js
+   │  ├─ doctorController.js
+   │  ├─ drugController.js
+   │  ├─ healthArticleController.js
+   │  ├─ healthLogController.js
+   │  ├─ investigationController.js
+   │  ├─ investigationReportController.js
+   │  ├─ medicalDocumentController.js
+   │  ├─ notificationController.js
+   │  ├─ patientController.js
+   │  ├─ paymentController.js
+   │  ├─ prescriptionController.js
+   │  ├─ prescriptionDrugController.js
+   │  ├─ prescriptionFileController.js
+   │  ├─ prescriptionInvestigationController.js
+   │  ├─ reviewController.js
+   │  ├─ scheduleController.js
+   │  └─ userController.js
+   ├─ db
+   │  └─ connection.js
+   ├─ index.js
+   ├─ middleware
+   │  ├─ authMiddleware.js
+   │  └─ upload.js
+   ├─ routes
+   │  ├─ appointmentRoutes.js
+   │  ├─ authRoutes.js
+   │  ├─ bookmarkedDoctorRoutes.js
+   │  ├─ departmentRoutes.js
+   │  ├─ doctorRoutes.js
+   │  ├─ drugRoutes.js
+   │  ├─ healthArticleRoutes.js
+   │  ├─ healthLogRoutes.js
+   │  ├─ investigationReportRoutes.js
+   │  ├─ investigationRoutes.js
+   │  ├─ medicalDocumentRoutes.js
+   │  ├─ notificationRoutes.js
+   │  ├─ patientRoutes.js
+   │  ├─ paymentRoutes.js
+   │  ├─ prescriptionDrugRoutes.js
+   │  ├─ prescriptionFileRoutes.js
+   │  ├─ prescriptionInvestigationRoutes.js
+   │  ├─ prescriptionRoutes.js
+   │  ├─ reviewRoutes.js
+   │  ├─ scheduleRoutes.js
+   │  └─ userRoutes.js
+   ├─ swagger.js
+   ├─ tempCodeRunnerFile.js
+   └─ uploads
+      ├─ article_images
+      │  └─ article-1750793586050.png
+      ├─ investigation_reports
+      │  └─ report-1750790017368.png
+      └─ medical_documents
