@@ -419,6 +419,21 @@ const getAppointmentsByDoctorAndStatus = async (req, res) => {
   }
 };
 
+// @route GET /api/appointments/doctor/:doctorId/stats
+const getDoctorAppointmentStats = async (req, res) => {
+  const { doctorId } = req.params;
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM get_doctor_appointment_stats($1)',
+      [doctorId]
+    );
+    res.status(200).json(rows[0]);
+  } catch (err) {
+    console.error('Error fetching appointment stats:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
 
 module.exports = {
     createAppointment,
@@ -426,6 +441,7 @@ module.exports = {
     getAppointmentsByDoctor,
     getAppointmentsByPatient,
     getAppointmentsByDoctorAndStatus,
+    getDoctorAppointmentStats,
     updateAppointment,
     cancelAppointment,
 };

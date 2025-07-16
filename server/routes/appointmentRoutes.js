@@ -6,6 +6,7 @@ const {
     getAppointmentsByDoctor,
     getAppointmentsByPatient,
     getAppointmentsByDoctorAndStatus,
+    getDoctorAppointmentStats,
     updateAppointment,
     cancelAppointment,
 } = require("../controllers/appointmentController");
@@ -18,6 +19,7 @@ router.route("/:id")
     .delete(cancelAppointment);
 
 router.route("/doctor/:doctorId").get(getAppointmentsByDoctor);
+router.get('/doctor/:doctorId/stats',getDoctorAppointmentStats);
 
 //BEFORE the patient route
 router.get('/doctor/:doctorId/status/:status', getAppointmentsByDoctorAndStatus);

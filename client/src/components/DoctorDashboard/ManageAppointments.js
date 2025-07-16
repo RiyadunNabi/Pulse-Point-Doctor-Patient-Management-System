@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { 
-    Calendar, 
-    Clock, 
-    User, 
-    Phone, 
-    Mail, 
-    MapPin, 
-    Eye, 
-    FileText, 
+import {
+    Calendar,
+    Clock,
+    User,
+    Phone,
+    Mail,
+    MapPin,
+    Eye,
+    FileText,
     X,
     ArrowLeft,
     Filter,
@@ -21,6 +21,11 @@ const ManageAppointments = ({ doctorId, onBack }) => {
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedDate, setSelectedDate] = useState('');
+    const [statusCounts, setStatusCounts] = useState({
+        pending: 0,
+        completed: 0,
+        cancelled: 0
+    });
 
     const tabs = [
         { id: 'pending', label: 'Pending', color: 'from-amber-500 to-orange-500' },
@@ -48,6 +53,24 @@ const ManageAppointments = ({ doctorId, onBack }) => {
         }
     }, [activeTab, doctorId]);
 
+    useEffect(() => {
+        const fetchCounts = async () => {
+            try {
+                const { data } = await axios.get(
+                    `/api/appointments/doctor/${doctorId}/stats`
+                );
+                setStatusCounts({
+                    pending: data.pending_count,
+                    completed: data.completed_count,
+                    cancelled: data.cancelled_count
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        if (doctorId) fetchCounts();
+    }, [doctorId]);
+
     // Handle appointment status update
     const handleStatusUpdate = async (appointmentId, newStatus) => {
         try {
@@ -61,15 +84,15 @@ const ManageAppointments = ({ doctorId, onBack }) => {
 
     // Filter appointments based on search and date
     const filteredAppointments = appointments.filter(appointment => {
-        const matchesSearch = searchTerm === '' || 
+        const matchesSearch = searchTerm === '' ||
             `${appointment.patient_first_name} ${appointment.patient_last_name}`
                 .toLowerCase().includes(searchTerm.toLowerCase()) ||
             appointment.patient_phone?.includes(searchTerm) ||
             appointment.patient_email?.toLowerCase().includes(searchTerm.toLowerCase());
-        
-        const matchesDate = selectedDate === '' || 
+
+        const matchesDate = selectedDate === '' ||
             appointment.appointment_date === selectedDate;
-        
+
         return matchesSearch && matchesDate;
     });
 
@@ -96,7 +119,7 @@ const ManageAppointments = ({ doctorId, onBack }) => {
             completed: { bg: 'bg-green-100', text: 'text-green-800', label: 'Completed' },
             cancelled: { bg: 'bg-red-100', text: 'text-red-800', label: 'Cancelled' }
         };
-        
+
         const config = statusConfig[status] || statusConfig.pending;
         return (
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
@@ -136,15 +159,14 @@ const ManageAppointments = ({ doctorId, onBack }) => {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                                        activeTab === tab.id
+                                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
                                             ? 'border-sky-500 text-sky-600'
                                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    }`}
+                                        }`}
                                 >
                                     {tab.label}
                                     <span className="ml-2 px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
-                                        {appointments.length}
+                                        {statusCounts[tab.id] || 0}
                                     </span>
                                 </button>
                             ))}
@@ -200,7 +222,7 @@ const ManageAppointments = ({ doctorId, onBack }) => {
                                     No {activeTab} appointments found
                                 </h3>
                                 <p className="text-gray-500">
-                                    {searchTerm || selectedDate 
+                                    {searchTerm || selectedDate
                                         ? 'Try adjusting your search filters'
                                         : `You don't have any ${activeTab} appointments yet.`
                                     }
@@ -231,7 +253,7 @@ const AppointmentCard = ({ appointment, onStatusUpdate, currentStatus }) => {
 
     const getActionButtons = () => {
         const buttons = [];
-        
+
         if (currentStatus === 'pending') {
             buttons.push(
                 <button
@@ -252,7 +274,7 @@ const AppointmentCard = ({ appointment, onStatusUpdate, currentStatus }) => {
                 </button>
             );
         }
-        
+
         return buttons;
     };
 
@@ -361,7 +383,7 @@ const getStatusBadge = (status) => {
         completed: { bg: 'bg-green-100', text: 'text-green-800', label: 'Completed' },
         cancelled: { bg: 'bg-red-100', text: 'text-red-800', label: 'Cancelled' }
     };
-    
+
     const config = statusConfig[status] || statusConfig.pending;
     return (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
