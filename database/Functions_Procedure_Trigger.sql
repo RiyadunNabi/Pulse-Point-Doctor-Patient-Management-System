@@ -167,7 +167,7 @@ RETURNS TABLE(
   patient_last_name   TEXT,
   patient_phone       TEXT,
   patient_email       TEXT,
-  patient_dob         DATE,
+  date_of_birth       DATE,
   patient_gender      TEXT,
   patient_address     TEXT
 ) AS $$
@@ -185,7 +185,7 @@ BEGIN
       p.last_name    ::TEXT AS patient_last_name,
       p.phone_no     ::TEXT AS patient_phone,
       u.email        ::TEXT AS patient_email,
-      p.date_of_birth AS patient_dob,
+      p.date_of_birth AS date_of_birth,
       p.gender       ::TEXT AS patient_gender,
       p.address      AS patient_address
     FROM appointment a
@@ -246,50 +246,53 @@ CREATE TRIGGER appointment_status_update
 CREATE OR REPLACE FUNCTION get_patient_health_data(patient_id_param INTEGER)
 RETURNS TABLE(
     latest_health_log_id INTEGER,
-    weight DECIMAL,
-    systolic INTEGER,
-    diastolic INTEGER,
-    heart_rate INTEGER,
-    blood_sugar DECIMAL,
-    sleep_hours DECIMAL,
-    health_notes TEXT,
-    health_log_date TIMESTAMP,
+    weight            DECIMAL,
+    systolic          INTEGER,
+    diastolic         INTEGER,
+    heart_rate        INTEGER,
+    blood_sugar       DECIMAL,
+    sleep_hours       DECIMAL,
+    health_notes      TEXT,
+    health_log_date   TIMESTAMP,
     medical_documents JSON
 ) AS $$
 BEGIN
-    RETURN QUERY
-    SELECT 
-        hl.log_id,
-        hl.weight,
-        hl.systolic,
-        hl.diastolic,
-        hl.heart_rate,
-        hl.blood_sugar,
-        hl.sleep_hours,
-        hl.notes,
-        hl.created_at,
-        COALESCE(
-            (SELECT json_agg(
-                json_build_object(
-                    'document_id', md.document_id,
-                    'file_name', md.file_name,
-                    'description', md.description,
-                    'upload_date', md.upload_date,
-                    'last_checkup_date', md.last_checkup_date
-                )
-            )
-            FROM medical_documents md 
-            WHERE md.patient_id = patient_id_param
-            ORDER BY md.upload_date DESC),
-            '[]'::json
-        ) as medical_documents
-    FROM health_logs hl
-    WHERE hl.patient_id = patient_id_param
-    ORDER BY hl.created_at DESC
-    LIMIT 1;
+  RETURN QUERY
+  SELECT 
+    hl.log_id,
+    hl.weight,
+    hl.systolic,
+    hl.diastolic,
+    hl.heart_rate,
+    hl.blood_sugar,
+    hl.sleep_hours,
+    hl.notes       AS health_notes,
+    hl.created_at  AS health_log_date,
+    COALESCE(
+      (
+        SELECT json_agg(
+          json_build_object(
+            'document_id',     md.document_id,
+            'file_name',       md.file_name,
+            'description',     md.description,
+            'upload_date',     md.upload_date,
+            'last_checkup_date', md.last_checkup_date
+          )
+          ORDER BY md.upload_date DESC
+        )
+        FROM medical_documents md
+        WHERE md.patient_id = patient_id_param
+      ),
+      '[]'::json
+    ) AS medical_documents
+  FROM health_logs hl
+  WHERE hl.patient_id = patient_id_param
+  ORDER BY hl.created_at DESC
+  LIMIT 1;
 END;
 $$ LANGUAGE plpgsql;
 
+---------------------------------------------------------------------
 -- Enhanced appointment creation function that returns predicted time
 CREATE OR REPLACE FUNCTION create_appointment_with_prediction(
     p_doctor_id INTEGER,

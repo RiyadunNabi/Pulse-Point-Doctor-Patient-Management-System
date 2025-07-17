@@ -64,6 +64,7 @@ app.use("/api/health-logs", healthLogRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/medical-documents", medicalDocumentRoutes);
 app.use("/api/health-articles", healthArticleRoutes);
+app.use('/api', require('./routes/appointmentSharedDataRoutes'));
 
 
 

@@ -3,13 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import AuthPage from './components/AuthPage';
+//patient
 import PatientDashboard from './components/PatientDashboard/PatientDashboard';
-import DoctorDashboard from './components/DoctorDashboard/DoctorDashboard';
 import DoctorsPage from './components/PatientDashboard/DoctorsSection/DoctorsPage';
 import DepartmentsPage from './components/PatientDashboard/DepartmentsSection/DepartmentsPage';
+//doctor
+import DoctorDashboard from './components/DoctorDashboard/DoctorDashboard';
+import ManageAppointments from './components/DoctorDashboard/ManageAppointments/ManageAppointments';
 
 import './utils/axiosConfig';
-
 
 function App() {
   const [user, setUser] = useState(null);
@@ -76,21 +78,7 @@ function App() {
     }
   }, [user]);
 
-  // Handle successful login
-  // const handleLogin = (token, userData) => {
-  //   console.log('Login successful:', userData);
-  //   console.log('=== LOGIN DEBUG ===');
-  // console.log('Token:', token);
-  // console.log('User data received:', userData);
-  // console.log('Patient ID:', userData?.patient_id);
-
-  //   localStorage.setItem('token', token);
-  //   localStorage.setItem('user', JSON.stringify(userData));
-  //   setUser(userData);
-  // };
-  // Simplify handleLogin
   const handleLogin = (token, userData) => {
-    // ✅ ADD DEBUGGING CODE HERE
     console.log('=== LOGIN RESPONSE DEBUG ===');
     console.log('User object from login:', userData);
     console.log('User patient_id:', userData?.patient_id);
@@ -131,31 +119,27 @@ function App() {
             path="/auth"
             element={
               user ? (
-                <Navigate to="/dashboard" replace />
+                // <Navigate to="/dashboard" replace />
+                <Navigate to={user.role === 'patient' ? "/dashboard" : "/doctordashboard"} replace />
               ) : (
                 <AuthPage onLogin={handleLogin} />
               )
             }
           />
 
+          {/* Patient Routes */}
           <Route
             path="/dashboard"
             element={
-              user ? (
-                user.role === 'patient' ? (
-                  <PatientDashboard user={user} onLogout={handleLogout} />
-                ) : user.role === 'doctor' ? (
-                  <DoctorDashboard user={user} onLogout={handleLogout} />
-                ) : (
-                  <Navigate to="/auth" replace />
-                )
+              user && user.role === 'patient' ? (
+                <PatientDashboard user={user} onLogout={handleLogout} />
               ) : (
                 <Navigate to="/auth" replace />
               )
             }
           />
 
-          {/* New routes for doctors and departments */}
+          {/* Patient-specific routes */}
           <Route
             path="/doctors"
             element={
@@ -167,22 +151,56 @@ function App() {
             }
           />
 
-          <Route 
-            path="/departments" 
+          <Route
+            path="/departments"
             element={
               user && user.role === 'patient' ? (
                 <DepartmentsPage user={user} onLogout={handleLogout} />
               ) : (
                 <Navigate to="/auth" replace />
               )
-            } 
+            }
+          />
+
+          {/* <Route
+            path="/"
+            element={
+              user ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <Navigate to="/auth" replace />
+              )
+            }
+          /> */}
+
+          {/* Doctor Routes */}
+          <Route
+            path="/doctordashboard"
+            element={
+              user && user.role === 'doctor' ? (
+                <DoctorDashboard user={user} onLogout={handleLogout} />
+              ) : (
+                <Navigate to="/auth" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/doctor-appointments"
+            element={
+              user && user.role === 'doctor' ? (
+                <ManageAppointments doctorId={user.doctor_id} user={user} onLogout={handleLogout} />
+              ) : (
+                <Navigate to="/auth" replace />
+              )
+            }
           />
 
           <Route
             path="/"
             element={
               user ? (
-                <Navigate to="/dashboard" replace />
+                <Navigate to={user.role === 'patient' ? "/dashboard" : "/doctordashboard"} replace />
               ) : (
                 <Navigate to="/auth" replace />
               )
