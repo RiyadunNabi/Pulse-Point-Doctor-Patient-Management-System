@@ -1,9 +1,10 @@
-//components/PatientDashboard/utils/constants.js
+// client/src/components/PatientDashboard/utils/constants.js
 
 export const NAV_TABS = [
-    { id: 'dashboard', label: 'Dashboard' },
-    { id: 'doctors', label: 'Doctors' },
-    { id: 'departments', label: 'Departments' },
-    { id: 'appointments', label: 'Book Appointment' },
-    { id: 'articles', label: 'Health Articles' },
+  { id: 'dashboard', label: 'Dashboard', route: '/dashboard' },
+  { id: 'doctors', label: 'Doctors', route: '/doctors' },
+  { id: 'departments', label: 'Departments', route: '/departments' },
+  { id: 'appointments', label: 'My Appointments' },
+  { id: 'health-logs', label: 'Health Logs' },
+  { id: 'documents', label: 'Documents' },
 ];

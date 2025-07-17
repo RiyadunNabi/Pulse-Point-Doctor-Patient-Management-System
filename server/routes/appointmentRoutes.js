@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const {
     createAppointment,
+    getPatientHealthData,
     getAppointmentById,
     getAppointmentsByDoctor,
     getAppointmentsByPatient,
@@ -12,6 +13,7 @@ const {
 } = require("../controllers/appointmentController");
 
 router.route("/").post(createAppointment);
+router.get('/patient-health-data/:patientId', getPatientHealthData);
 
 router.route("/:id")
     .get(getAppointmentById)

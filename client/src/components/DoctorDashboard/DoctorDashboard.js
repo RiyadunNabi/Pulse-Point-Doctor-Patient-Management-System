@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
 import { Bell, LogOut, User, Stethoscope } from 'lucide-react';
 import DoctorProfileCard from './DoctorProfileCard';
 import AppointmentStatsSection from './AppointmentStatsSection';
@@ -11,7 +13,7 @@ import UpcomingAppointmentsSection from './UpcomingAppointmentsSection';
 import QuickStatsWidget from './QuickStatsWidget';
 import HealthInsightsWidget from './HealthInsightsWidget';
 import MedicalInsightsSection from './MedicalInsightsSection';
-import ManageAppointments from './ManageAppointments';
+import ManageAppointments from './ManageAppointments/ManageAppointments';
 
 // Pulse Point Logo Component (reused from PatientDashboard)
 const PulsePointLogo = ({ className = "w-8 h-8" }) => (
@@ -38,6 +40,7 @@ const PulsePointLogo = ({ className = "w-8 h-8" }) => (
 );
 
 function DoctorDashboard({ user, onLogout }) {
+    const navigate = useNavigate();
     // State management
     const [doctor, setDoctor] = useState(null);
     const [appointments, setAppointments] = useState([]);
@@ -49,14 +52,24 @@ function DoctorDashboard({ user, onLogout }) {
     const [scheduleData, setScheduleData] = useState([]);
     const [showManageAppointments, setShowManageAppointments] = useState(false);
 
-    // Navigation tabs for doctors
+    // Updated navigation tabs with routing
     const navTabs = [
-        { id: 'dashboard', label: 'Dashboard', active: true },
-        { id: 'appointments', label: 'Appointments', active: false },
-        { id: 'patients', label: 'My Patients', active: false },
-        { id: 'schedule', label: 'Schedule', active: false },
-        { id: 'articles', label: 'Health Articles', active: false },
+        { id: 'dashboard', label: 'Dashboard', path: '/doctordashboard', active: true },
+        { id: 'appointments', label: 'Appointments', path: '/doctor-appointments', active: false },
+        { id: 'patients', label: 'My Patients', path: '/doctor-patients', active: false },
+        { id: 'schedule', label: 'Schedule', path: '/doctor-schedule', active: false },
+        { id: 'articles', label: 'Health Articles', path: '/doctor-articles', active: false },
     ];
+
+    // Handle tab navigation
+    const handleTabClick = (tab) => {
+        if (tab.id === 'appointments') {
+            navigate('/doctor-appointments');
+        } else if (tab.id === 'dashboard') {
+            navigate('/doctordashboard');
+        }
+        // Add other tab navigations as needed
+    };
 
     // User validation
     useEffect(() => {
@@ -349,8 +362,8 @@ function DoctorDashboard({ user, onLogout }) {
                         appointments={appointments}
                         onUpdate={fetchAppointments}
                         doctorId={user?.doctor_id}
-                        layout="horizontal" // New prop for horizontal layout
-                        onNavigateToManage={handleNavigateToManageAppointments}
+                        layout="horizontal"
+                        onNavigateToManage={() => navigate('/doctor-appointments')}
                     />
                 </div>
 
