@@ -1,9 +1,14 @@
+// client/src/App.js
+
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import AuthPage from './components/AuthPage';
 import PatientDashboard from './components/PatientDashboard/PatientDashboard';
 import DoctorDashboard from './components/DoctorDashboard/DoctorDashboard';
-import './utils/axiosConfig'; // Add this import at the top
+import DoctorsPage from './components/PatientDashboard/DoctorsSection/DoctorsPage';
+import DepartmentsPage from './components/PatientDashboard/DepartmentsSection/DepartmentsPage';
+
+import './utils/axiosConfig';
 
 
 function App() {
@@ -25,7 +30,7 @@ function App() {
           const parsedUser = JSON.parse(userData);
           console.log('Parsed user data:', parsedUser);
 
-          // ✅ Enhanced validation for both roles
+          // Enhanced validation for both roles
           console.log('=== STORED USER DATA DEBUG ===');
           console.log('Stored user object:', parsedUser);
           console.log('User role:', parsedUser?.role);
@@ -133,43 +138,56 @@ function App() {
             }
           />
 
-          <Route 
-          path="/dashboard" 
-          element={
-            user ? (
-              user.role === 'patient' ? (
-                <PatientDashboard user={user} onLogout={handleLogout} />
-              ) : user.role === 'doctor' ? (
-                <DoctorDashboard user={user} onLogout={handleLogout} />
+          <Route
+            path="/dashboard"
+            element={
+              user ? (
+                user.role === 'patient' ? (
+                  <PatientDashboard user={user} onLogout={handleLogout} />
+                ) : user.role === 'doctor' ? (
+                  <DoctorDashboard user={user} onLogout={handleLogout} />
+                ) : (
+                  <Navigate to="/auth" replace />
+                )
               ) : (
                 <Navigate to="/auth" replace />
               )
-            ) : (
-              <Navigate to="/auth" replace />
-            )
-          } 
-        />
+            }
+          />
 
-          {/* <Route
+          {/* New routes for doctors and departments */}
+          <Route
+            path="/doctors"
+            element={
+              user && user.role === 'patient' ? (
+                <DoctorsPage user={user} onLogout={handleLogout} />
+              ) : (
+                <Navigate to="/auth" replace />
+              )
+            }
+          />
+
+          <Route 
+            path="/departments" 
+            element={
+              user && user.role === 'patient' ? (
+                <DepartmentsPage user={user} onLogout={handleLogout} />
+              ) : (
+                <Navigate to="/auth" replace />
+              )
+            } 
+          />
+
+          <Route
             path="/"
             element={
-              user && user.role === 'patient' && user.patient_id ? (
+              user ? (
                 <Navigate to="/dashboard" replace />
               ) : (
                 <Navigate to="/auth" replace />
               )
             }
-          /> */}
-          <Route 
-          path="/" 
-          element={
-            user ? (
-              <Navigate to="/dashboard" replace />
-            ) : (
-              <Navigate to="/auth" replace />
-            )
-          } 
-        />
+          />
 
           <Route
             path="*"
@@ -183,176 +201,3 @@ function App() {
 
 export default App;
 
-
-
-// import React, { useState, useEffect } from 'react';
-// import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-// import AuthPage from './components/AuthPage';
-// import PatientDashboard from './components/PatientDashboard/PatientDashboard';
-// import ProtectedRoute from './components/ProtectedRoute';
-
-// function App() {
-//   const [user, setUser] = useState(null);
-//   const [loading, setLoading] = useState(true);
-
-//   // Check for existing authentication on app load
-//   useEffect(() => {
-//     const token = localStorage.getItem('token');
-//     const userData = localStorage.getItem('user');
-
-//     if (token && userData) {
-//       try {
-//         const parsedUser = JSON.parse(userData);
-//         setUser(parsedUser);
-//       } catch (error) {
-//         console.error('Error parsing user data:', error);
-//         localStorage.removeItem('token');
-//         localStorage.removeItem('user');
-//       }
-//     }
-//     setLoading(false);
-//   }, []);
-
-//   // Handle successful login
-//   const handleLogin = (token, userData) => {
-//     localStorage.setItem('token', token);
-//     localStorage.setItem('user', JSON.stringify(userData));
-//     setUser(userData);
-//   };
-
-//   // Handle logout
-//   const handleLogout = () => {
-//     localStorage.removeItem('token');
-//     localStorage.removeItem('user');
-//     setUser(null);
-//   };
-
-//   // Loading screen while checking authentication
-//   if (loading) {
-//     return (
-//       <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50 flex items-center justify-center">
-//         <div className="flex items-center space-x-3">
-//           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600"></div>
-//           <span className="text-slate-700 font-medium">Loading...</span>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <Router>
-//       <div className="App">
-//         <Routes>
-//           {/* Public Route - Authentication */}
-//           <Route
-//             path="/auth"
-//             element={
-//               user ? (
-//                 <Navigate to="/dashboard" replace />
-//               ) : (
-//                 <AuthPage onLogin={handleLogin} />
-//               )
-//             }
-//           />
-
-//           {/* Protected Route - Patient Dashboard */}
-//           <Route
-//             path="/dashboard"
-//             element={
-//               <ProtectedRoute user={user} requiredRole="patient">
-//                 <PatientDashboard user={user} onLogout={handleLogout} />
-//               </ProtectedRoute>
-//             }
-//           />
-
-
-//           {/* Default Route - Redirect based on authentication */}
-//           <Route
-//             path="/"
-//             element={
-//               user ? (
-//                 <Navigate to="/dashboard" replace />
-//               ) : (
-//                 <Navigate to="/auth" replace />
-//               )
-//             }
-//           />
-
-//           {/* Catch all other routes */}
-//           <Route
-//             path="*"
-//             element={
-//               user ? (
-//                 <Navigate to="/dashboard" replace />
-//               ) : (
-//                 <Navigate to="/auth" replace />
-//               )
-//             }
-//           />
-//         </Routes>
-//       </div>
-//     </Router>
-//   );
-// }
-
-// export default App;
-
-
-
-
-// import React, { useState } from 'react';
-// import DoctorsList from './components/DoctorsList';
-// import AuthPage from './components/AuthPage';
-
-// function App() {
-//   const [token, setToken] = useState('');
-//   const [user, setUser] = useState(null);
-
-//   return (
-//     <div>
-//       {!token ? (
-//         <AuthPage onLogin={(jwt, userObj) => { setToken(jwt); setUser(userObj); }} />
-//       ) : (
-//         <div className="min-h-screen bg-gradient-to-br from-blue-100 to-blue-400 flex flex-col items-center p-8">
-//           <h1 className="text-4xl font-bold text-blue-800 mb-8 text-center drop-shadow-lg">
-//             PulsePoint Doctor-Patient Management System
-//           </h1>
-//           <div className="w-full max-w-xl">
-//             <DoctorsList token={token} />
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
-
-// export default App;
-
-
-
-// import React, { useState } from 'react';
-// import DoctorsList from './components/DoctorsList';
-// import LoginForm from './components/LoginForm';
-
-// function App() {
-//   const [token, setToken] = useState('');
-
-//   return (
-//     <div>
-//       {!token ? (
-//         <LoginForm onLogin={setToken} />
-//       ) : (
-//         <div className="min-h-screen bg-gradient-to-br from-blue-100 to-blue-400 flex flex-col items-center p-8">
-//           <h1 className="text-4xl font-bold text-blue-800 mb-8 text-center drop-shadow-lg">
-//             PulsePoint Doctor-Patient Management System
-//           </h1>
-//           <div className="w-full max-w-xl">
-//             <DoctorsList token={token} />
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
-
-// export default App;

@@ -283,6 +283,52 @@ CREATE TABLE medical_documents (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Link appointments to shared health logs
+CREATE TABLE IF NOT EXISTS appointment_health_logs (
+    appointment_id INTEGER REFERENCES appointment(appointment_id) ON DELETE CASCADE,
+    health_log_id INTEGER REFERENCES health_logs(log_id) ON DELETE CASCADE,
+    PRIMARY KEY (appointment_id, health_log_id)
+);
+
+-- Link appointments to shared medical documents
+CREATE TABLE IF NOT EXISTS appointment_documents (
+    appointment_id INTEGER REFERENCES appointment(appointment_id) ON DELETE CASCADE,
+    document_id INTEGER REFERENCES medical_documents(document_id) ON DELETE CASCADE,
+    PRIMARY KEY (appointment_id, document_id)
+);
+
+
+
+
+
+
+
+
+-- NOTIFICATIONS
+CREATE TABLE notifications (
+    notification_id SERIAL PRIMARY KEY,
+    patient_id INTEGER REFERENCES patient(patient_id) ON DELETE SET NULL,
+    doctor_id INTEGER REFERENCES doctor(doctor_id) ON DELETE SET NULL,
+    appointment_id INTEGER REFERENCES appointment(appointment_id) ON DELETE SET NULL,
+    prescription_id INTEGER REFERENCES prescription(prescription_id) ON DELETE SET NULL,
+    notification_type VARCHAR(20) CHECK (notification_type IN ('appointment', 'prescription')),
+    title VARCHAR(255),
+    message TEXT,
+    is_read BOOLEAN DEFAULT FALSE,
+    time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+
+
+
+
+
+
+
+
+
+
 -- DISEASE
 CREATE TABLE disease (
     disease_id SERIAL PRIMARY KEY,
@@ -317,18 +363,4 @@ CREATE TABLE diseases_symptom (
     disease_id INTEGER REFERENCES disease(disease_id) ON DELETE CASCADE,
     symptom_id INTEGER REFERENCES symptom(symptom_id) ON DELETE CASCADE,
     PRIMARY KEY (disease_id, symptom_id)
-);
-
--- NOTIFICATIONS
-CREATE TABLE notifications (
-    notification_id SERIAL PRIMARY KEY,
-    patient_id INTEGER REFERENCES patient(patient_id) ON DELETE SET NULL,
-    doctor_id INTEGER REFERENCES doctor(doctor_id) ON DELETE SET NULL,
-    appointment_id INTEGER REFERENCES appointment(appointment_id) ON DELETE SET NULL,
-    prescription_id INTEGER REFERENCES prescription(prescription_id) ON DELETE SET NULL,
-    notification_type VARCHAR(20) CHECK (notification_type IN ('appointment', 'prescription')),
-    title VARCHAR(255),
-    message TEXT,
-    is_read BOOLEAN DEFAULT FALSE,
-    time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
