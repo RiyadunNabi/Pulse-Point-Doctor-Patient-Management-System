@@ -193,7 +193,7 @@ BEGIN
     JOIN "user"   u ON p.user_id    = u.user_id
     WHERE a.doctor_id = doctor_id_param
       AND a.status    = status_param
-    ORDER BY a.appointment_date DESC, a.appointment_time DESC;
+    ORDER BY a.appointment_date ASC, a.appointment_time ASC;
 END;
 $$ LANGUAGE plpgsql;
 

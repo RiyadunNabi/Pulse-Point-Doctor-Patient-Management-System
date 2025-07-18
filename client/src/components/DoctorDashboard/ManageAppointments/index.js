@@ -1,3 +1,4 @@
+// client\src\components\DoctorDashboard\ManageAppointments\index.js
 export { default } from './ManageAppointments';
 export { default as AppointmentCard } from './AppointmentCard';
 export { default as AppointmentFilters } from './AppointmentFilters';
