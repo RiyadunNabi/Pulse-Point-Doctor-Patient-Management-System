@@ -1,27 +1,69 @@
 const pool = require('../db/connection');
 const fs = require('fs');
 
-// createPrescriptionFile and getFilesByPrescription are mostly the same
-const createPrescriptionFile = async (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded.' });
-    }
-    const { prescription_id } = req.body;
-    const { originalname, mimetype, path } = req.file;
+// // createPrescriptionFile and getFilesByPrescription are mostly the same
+// const createPrescriptionFile = async (req, res) => {
+//     if (!req.file) {
+//         return res.status(400).json({ error: 'No file uploaded.' });
+//     }
+//     const { prescription_id } = req.body;
+//     const { originalname, mimetype, path } = req.file;
 
+//     if (!prescription_id) {
+//         return res.status(400).json({ error: 'prescription_id is required.' });
+//     }
+//     try {
+//         const result = await pool.query(
+//             `INSERT INTO prescription_file (prescription_id, file_name, file_type, filepath)
+//              VALUES ($1, $2, $3, $4) RETURNING *`,
+//             [prescription_id, originalname, mimetype, path]
+//         );
+//         res.status(201).json(result.rows[0]);
+//     } catch (err) {
+//         console.error("Error saving prescription file record:", err);
+//         res.status(500).json({ error: 'Error saving file record' });
+//     }
+// };
+
+// Updated to handle multiple files
+const createPrescriptionFiles = async (req, res) => {
+    if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ error: 'No files uploaded.' });
+    }
+    
+    const { prescription_id } = req.body;
+    
     if (!prescription_id) {
         return res.status(400).json({ error: 'prescription_id is required.' });
     }
+
+    const client = await pool.connect();
+    
     try {
-        const result = await pool.query(
-            `INSERT INTO prescription_file (prescription_id, file_name, file_type, filepath)
-             VALUES ($1, $2, $3, $4) RETURNING *`,
-            [prescription_id, originalname, mimetype, path]
-        );
-        res.status(201).json(result.rows[0]);
+        await client.query('BEGIN');
+        
+        const uploadedFiles = [];
+        
+        for (const file of req.files) {
+            const { originalname, mimetype, path } = file;
+            
+            const result = await client.query(
+                `INSERT INTO prescription_file (prescription_id, file_name, file_type, filepath)
+                 VALUES ($1, $2, $3, $4) RETURNING *`,
+                [prescription_id, originalname, mimetype, path]
+            );
+            
+            uploadedFiles.push(result.rows[0]);
+        }
+        
+        await client.query('COMMIT');
+        res.status(201).json(uploadedFiles);
     } catch (err) {
-        console.error("Error saving prescription file record:", err);
-        res.status(500).json({ error: 'Error saving file record' });
+        await client.query('ROLLBACK');
+        console.error("Error saving prescription files:", err);
+        res.status(500).json({ error: 'Error saving file records' });
+    } finally {
+        client.release();
     }
 };
 
@@ -87,7 +129,8 @@ const deletePrescriptionFile = async (req, res) => {
 };
 
 module.exports = {
-    createPrescriptionFile,
+    // createPrescriptionFile,
+    createPrescriptionFiles,
     getFilesByPrescription,
     downloadPrescriptionFile,
     deletePrescriptionFile,

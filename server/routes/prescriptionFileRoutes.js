@@ -4,13 +4,16 @@ const router = express.Router();
 const { uploadPrescriptionFile } = require("../middleware/upload"); 
 
 const {
-    createPrescriptionFile,
+    // createPrescriptionFile,
+    createPrescriptionFiles,
     getFilesByPrescription,
     downloadPrescriptionFile,
     deletePrescriptionFile,
 } = require("../controllers/prescriptionFileController");
 
-router.post("/", uploadPrescriptionFile.single('prescriptionFile'), createPrescriptionFile);
+// router.post("/", uploadPrescriptionFile.single('prescriptionFile'), createPrescriptionFile);
+// Updated to handle multiple files
+router.post("/", uploadPrescriptionFile.array('prescriptionFiles', 10), createPrescriptionFiles);
 
 router.get("/prescription/:prescriptionId", getFilesByPrescription);
 
