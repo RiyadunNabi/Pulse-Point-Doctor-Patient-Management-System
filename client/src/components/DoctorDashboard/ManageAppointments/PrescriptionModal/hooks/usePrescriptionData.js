@@ -11,31 +11,7 @@ export const usePrescriptionData = () => {
         setError(null);
 
         try {
-            // const token = localStorage.getItem('token');
-            // if (!token) {
-            //     setError("Authentication token not found in local storage.");
-            //     setLoading(false);
-            //     return;
-            // }
-
-            // const response = await fetch('http://localhost:5000/api/prescriptions', {
-            //     method: 'POST',
-            //     headers: {
-            //         'Authorization': `Bearer ${token}`,
-            //         'Content-Type': 'application/json'
-            //     },
-            //     body: JSON.stringify(prescriptionData)
-            // });
-
-            // const data = await response.json();
-
-            // if (!response.ok) {
-            //     throw new Error(data.error || 'Failed to create prescription');
-            // }
-
-            // return { success: true, data };
-
-            const { data } = await axios.post('/prescriptions', prescriptionData);
+            const { data } = await axios.post('/api/prescriptions', prescriptionData);
             return { success: true, data };
 
         } catch (err) {
@@ -51,36 +27,46 @@ export const usePrescriptionData = () => {
         setError(null);
 
         try {
-            // const token = localStorage.getItem('token');
-            // if (!token) throw new Error('Authentication token not found');
-            // // const response = await fetch(`/api/prescriptions/appointment/${appointmentId}`);
-            // const response = await fetch(
-            //     `/api/prescriptions/appointment/${appointmentId}`, { 
-            //     headers: { 'Authorization': `Bearer ${token}` } 
-            // });
-            // const data = await response.json();
-
-            // if (!response.ok) {
-            //     throw new Error(data.error || 'Failed to fetch prescription');
-            // }
-
-            // return { success: true, data };
-
-            const { data } = await axios.get(`/prescriptions/appointment/${appointmentId}`);
+            const { data } = await axios.get(`/api/prescriptions/appointment/${appointmentId}`);
             return { success: true, data };
 
         } catch (err) {
-            setError(err.message);
+            if (err.response?.status === 404) {
+                // no prescription exists yet
+                return { success: true, data: null };
+            }
+            // real error
+            setError(err.response?.data?.error || err.message);
             return { success: false, error: err.message };
         } finally {
             setLoading(false);
         }
     };
 
+    const updatePrescription = async (prescriptionId, updateData) => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const { data } = await axios.patch(
+                `/api/prescriptions/${prescriptionId}`,
+                updateData
+            );
+            return { success: true, data };
+        } catch (err) {
+            setError(err.response?.data?.error || err.message);
+            return { success: false, error: err.message };
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
     return {
         loading,
         error,
         createPrescription,
         getPrescriptionByAppointmentId,
+        updatePrescription,
     };
 };

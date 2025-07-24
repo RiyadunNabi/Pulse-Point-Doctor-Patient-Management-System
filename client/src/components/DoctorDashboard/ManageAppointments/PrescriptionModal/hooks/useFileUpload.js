@@ -38,7 +38,7 @@ export const useFileUpload = () => {
             // }
 
             // return { success: true, data };
-            const { data } = await axios.post('/prescription-files', formData);
+            const { data } = await axios.post('/api/prescription-files', formData);
             return { success: true, data };
         } catch (err) {
             setError(err.message);
@@ -60,7 +60,7 @@ export const useFileUpload = () => {
             // }
 
             // return { success: true, data };
-            const { data } = await axios.get(`/prescription-files/prescription/${prescriptionId}`);
+            const { data } = await axios.get(`/api/prescription-files/prescription/${prescriptionId}`);
             return { success: true, data };
         } catch (err) {
             setError(err.message);
@@ -78,7 +78,7 @@ export const useFileUpload = () => {
 
             // const blob = await response.blob();
 
-            const response = await axios.get(`/prescription-files/${fileId}/download`, { responseType: 'blob' });
+            const response = await axios.get(`/api/prescription-files/${fileId}/download`, { responseType: 'blob' });
             const blob = response.data;
 
             const url = window.URL.createObjectURL(blob);
@@ -109,7 +109,7 @@ export const useFileUpload = () => {
             //     const data = await response.json();
             //     throw new Error(data.error || 'Failed to delete file');
             // }
-            await axios.delete(`/prescription-files/${fileId}`);
+            await axios.delete(`/api/prescription-files/${fileId}`);
             return { success: true };
         } catch (err) {
             setError(err.message);
