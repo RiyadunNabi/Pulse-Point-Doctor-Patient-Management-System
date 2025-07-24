@@ -9,7 +9,8 @@ const {
     getAppointmentsByDoctorAndStatus,
     getDoctorAppointmentStats,
     updateAppointment,
-    cancelAppointment,
+    // cancelAppointment
+    deleteAppointment,
 } = require("../controllers/appointmentController");
 
 router.route("/").post(createAppointment);
@@ -18,7 +19,7 @@ router.get('/patient-health-data/:patientId', getPatientHealthData);
 router.route("/:id")
     .get(getAppointmentById)
     .patch(updateAppointment)
-    .delete(cancelAppointment);
+    .delete(deleteAppointment);
 
 router.route("/doctor/:doctorId").get(getAppointmentsByDoctor);
 router.get('/doctor/:doctorId/stats',getDoctorAppointmentStats);

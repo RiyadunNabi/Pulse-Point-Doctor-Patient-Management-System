@@ -7,6 +7,7 @@ import AuthPage from './components/AuthPage';
 import PatientDashboard from './components/PatientDashboard/PatientDashboard';
 import DoctorsPage from './components/PatientDashboard/DoctorsSection/DoctorsPage';
 import DepartmentsPage from './components/PatientDashboard/DepartmentsSection/DepartmentsPage';
+import PatientAppointmentsPage from './components/PatientDashboard/PatientAppointmentsPage/PatientAppointmentsPage';
 //doctor
 import DoctorDashboard from './components/DoctorDashboard/DoctorDashboard';
 import ManageAppointments from './components/DoctorDashboard/ManageAppointments/ManageAppointments';
@@ -161,6 +162,18 @@ function App() {
               )
             }
           />
+          {/* Add this route to your App.js */}
+          <Route
+            path="/patient-appointments"
+            element={
+              user && user.role === 'patient' ? (
+                <PatientAppointmentsPage user={user} onLogout={handleLogout} />
+              ) : (
+                <Navigate to="/auth" replace />
+              )
+            }
+          />
+
 
           {/* <Route
             path="/"

@@ -126,8 +126,8 @@ const getAppointmentsByPatient = async (req, res) => {
     const { patientId } = req.params;
     try {
         const query = `
-            SELECT a.appointment_id, a.appointment_date, a.appointment_time, a.status, 
-                   d.first_name, d.last_name, dep.department_name
+            SELECT a.appointment_id, a.appointment_date, a.appointment_time, a.status, a.reason,
+                   d.doctor_id, d.first_name, d.last_name, dep.department_name
             FROM appointment a
             JOIN doctor d ON a.doctor_id = d.doctor_id
             JOIN department dep ON d.department_id = dep.department_id
@@ -170,23 +170,23 @@ const updateAppointment = async (req, res) => {
     }
 };
 
-// @route   DELETE /api/appointments/:id
-const cancelAppointment = async (req, res) => {
-    const { id } = req.params;
-    try {
-        const result = await pool.query(
-            `UPDATE appointment SET status = 'cancelled' WHERE appointment_id = $1 RETURNING *`,
-            [id]
-        );
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Appointment not found." });
-        }
-        res.status(204).send(); // Success, no content
-    } catch (err) {
-        console.error("Error cancelling appointment:", err);
-        res.status(500).json({ error: "Internal server error" });
-    }
-};
+// // @route   DELETE /api/appointments/:id
+// const cancelAppointment = async (req, res) => {
+//     const { id } = req.params;
+//     try {
+//         const result = await pool.query(
+//             `UPDATE appointment SET status = 'cancelled' WHERE appointment_id = $1 RETURNING *`,
+//             [id]
+//         );
+//         if (result.rows.length === 0) {
+//             return res.status(404).json({ error: "Appointment not found." });
+//         }
+//         res.status(204).send(); // Success, no content
+//     } catch (err) {
+//         console.error("Error cancelling appointment:", err);
+//         res.status(500).json({ error: "Internal server error" });
+//     }
+// };
 
 // // @route   GET /api/appointments/doctor/:doctorId/status/:status
 // const getAppointmentsByDoctorAndStatus = async (req, res) => {
@@ -253,6 +253,23 @@ const getDoctorAppointmentStats = async (req, res) => {
   }
 };
 
+const deleteAppointment = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query(
+            'DELETE FROM appointment WHERE appointment_id = $1 RETURNING *',
+            [id]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Appointment not found." });
+        }
+        res.status(204).send(); // Success, no content
+    } catch (err) {
+        console.error("Error deleting appointment:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
 
 module.exports = {
     createAppointment,
@@ -263,5 +280,5 @@ module.exports = {
     getAppointmentsByDoctorAndStatus,
     getDoctorAppointmentStats,
     updateAppointment,
-    cancelAppointment,
+    deleteAppointment,
 };
