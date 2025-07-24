@@ -1,4 +1,6 @@
+//client\src\components\DoctorDashboard\ManageAppointments\PrescriptionModal\hooks\usePrescriptionData.js
 import { useState } from 'react';
+import axios from '../../../../../utils/axiosConfig';
 
 export const usePrescriptionData = () => {
     const [loading, setLoading] = useState(false);
@@ -9,36 +11,33 @@ export const usePrescriptionData = () => {
         setError(null);
 
         try {
-            // const response = await fetch('/api/prescriptions', {
+            // const token = localStorage.getItem('token');
+            // if (!token) {
+            //     setError("Authentication token not found in local storage.");
+            //     setLoading(false);
+            //     return;
+            // }
+
+            // const response = await fetch('http://localhost:5000/api/prescriptions', {
             //     method: 'POST',
             //     headers: {
-            //         'Content-Type': 'application/json',
+            //         'Authorization': `Bearer ${token}`,
+            //         'Content-Type': 'application/json'
             //     },
-            //     body: JSON.stringify(prescriptionData),
+            //     body: JSON.stringify(prescriptionData)
             // });
-            const token = localStorage.getItem('token');
-            if (!token) {
-                setError("Authentication token not found in local storage.");
-                setLoading(false);
-                return;
-            }
 
-            const response = await fetch('http://localhost:5000/api/prescriptions', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(prescriptionData)
-            });
+            // const data = await response.json();
 
-            const data = await response.json();
+            // if (!response.ok) {
+            //     throw new Error(data.error || 'Failed to create prescription');
+            // }
 
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to create prescription');
-            }
+            // return { success: true, data };
 
+            const { data } = await axios.post('/prescriptions', prescriptionData);
             return { success: true, data };
+
         } catch (err) {
             setError(err.message);
             return { success: false, error: err.message };
@@ -52,14 +51,24 @@ export const usePrescriptionData = () => {
         setError(null);
 
         try {
-            const response = await fetch(`/api/prescriptions/appointment/${appointmentId}`);
-            const data = await response.json();
+            // const token = localStorage.getItem('token');
+            // if (!token) throw new Error('Authentication token not found');
+            // // const response = await fetch(`/api/prescriptions/appointment/${appointmentId}`);
+            // const response = await fetch(
+            //     `/api/prescriptions/appointment/${appointmentId}`, { 
+            //     headers: { 'Authorization': `Bearer ${token}` } 
+            // });
+            // const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to fetch prescription');
-            }
+            // if (!response.ok) {
+            //     throw new Error(data.error || 'Failed to fetch prescription');
+            // }
 
+            // return { success: true, data };
+
+            const { data } = await axios.get(`/prescriptions/appointment/${appointmentId}`);
             return { success: true, data };
+
         } catch (err) {
             setError(err.message);
             return { success: false, error: err.message };

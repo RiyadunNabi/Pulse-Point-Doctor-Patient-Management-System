@@ -1,4 +1,6 @@
+//client/src/components/DoctorDashboard/ManageAppointments/PrescriptionModal/hooks/
 import { useState } from 'react';
+import axios from '../../../../../utils/axiosConfig';
 
 export const useFileUpload = () => {
     const [uploading, setUploading] = useState(false);
@@ -13,6 +15,9 @@ export const useFileUpload = () => {
         setError(null);
 
         try {
+            // const token = localStorage.getItem('token');
+            // if (!token) throw new Error('Authentication token not found');
+
             const formData = new FormData();
             formData.append('prescription_id', prescriptionId);
             
@@ -20,17 +25,20 @@ export const useFileUpload = () => {
                 formData.append('prescriptionFiles', file);
             });
 
-            const response = await fetch('/api/prescription-files', {
-                method: 'POST',
-                body: formData,
-            });
+            // const response = await fetch('/api/prescription-files', {
+            //     method: 'POST',
+            //     headers: { 'Authorization': `Bearer ${token}` },
+            //     body: formData,
+            // });
 
-            const data = await response.json();
+            // const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to upload files');
-            }
+            // if (!response.ok) {
+            //     throw new Error(data.error || 'Failed to upload files');
+            // }
 
+            // return { success: true, data };
+            const { data } = await axios.post('/prescription-files', formData);
             return { success: true, data };
         } catch (err) {
             setError(err.message);
@@ -44,13 +52,15 @@ export const useFileUpload = () => {
         setError(null);
 
         try {
-            const response = await fetch(`/api/prescription-files/prescription/${prescriptionId}`);
-            const data = await response.json();
+            // const response = await fetch(`/api/prescription-files/prescription/${prescriptionId}`);
+            // const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to fetch files');
-            }
+            // if (!response.ok) {
+            //     throw new Error(data.error || 'Failed to fetch files');
+            // }
 
+            // return { success: true, data };
+            const { data } = await axios.get(`/prescription-files/prescription/${prescriptionId}`);
             return { success: true, data };
         } catch (err) {
             setError(err.message);
@@ -60,13 +70,17 @@ export const useFileUpload = () => {
 
     const downloadPrescriptionFile = async (fileId) => {
         try {
-            const response = await fetch(`/api/prescription-files/${fileId}/download`);
+            // const response = await fetch(`/api/prescription-files/${fileId}/download`);
             
-            if (!response.ok) {
-                throw new Error('Failed to download file');
-            }
+            // if (!response.ok) {
+            //     throw new Error('Failed to download file');
+            // }
 
-            const blob = await response.blob();
+            // const blob = await response.blob();
+
+            const response = await axios.get(`/prescription-files/${fileId}/download`, { responseType: 'blob' });
+            const blob = response.data;
+
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -87,15 +101,15 @@ export const useFileUpload = () => {
         setError(null);
 
         try {
-            const response = await fetch(`/api/prescription-files/${fileId}`, {
-                method: 'DELETE',
-            });
+            // const response = await fetch(`/api/prescription-files/${fileId}`, {
+            //     method: 'DELETE',
+            // });
 
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.error || 'Failed to delete file');
-            }
-
+            // if (!response.ok) {
+            //     const data = await response.json();
+            //     throw new Error(data.error || 'Failed to delete file');
+            // }
+            await axios.delete(`/prescription-files/${fileId}`);
             return { success: true };
         } catch (err) {
             setError(err.message);
