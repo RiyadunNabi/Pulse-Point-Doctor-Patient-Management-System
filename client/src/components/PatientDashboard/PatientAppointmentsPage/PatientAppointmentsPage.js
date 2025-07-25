@@ -122,7 +122,7 @@ const PatientAppointmentsPage = ({ user, onLogout }) => {
                     subtitle="View your prescription information"
                     size="lg"
                 >
-                    <PrescriptionView prescription={prescription} />
+                    <PrescriptionView prescription={prescription} appointment={selectedAppointment} />
                 </Modal>
             )}
 

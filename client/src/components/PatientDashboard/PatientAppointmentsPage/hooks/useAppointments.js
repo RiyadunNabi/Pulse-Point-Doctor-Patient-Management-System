@@ -70,6 +70,9 @@ export const useAppointments = (
         try {
             const response = await axios.get(`/api/prescriptions/appointment/${appointmentId}`);
             setPrescription(response.data);
+            // Find the appointment data to pass to the modal
+        const appointmentData = filteredAppointments.find(apt => apt.appointment_id === appointmentId);
+        setSelectedAppointment(appointmentData);
             setShowPrescriptionModal(true);
         } catch (error) {
             console.error('Error fetching prescription:', error);

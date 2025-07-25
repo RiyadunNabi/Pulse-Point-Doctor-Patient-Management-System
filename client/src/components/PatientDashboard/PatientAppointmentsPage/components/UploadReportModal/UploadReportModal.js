@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
     Upload, 
-    User, 
     Stethoscope, 
     Building2,
     Calendar,
@@ -12,7 +11,9 @@ import {
     CheckCircle,
     AlertCircle,
     File,
-    X
+    X,
+    Plus,
+    Eye
 } from 'lucide-react';
 import axios from 'axios';
 import Modal from '../../../../shared/Modal';
@@ -23,7 +24,7 @@ const UploadReportModal = ({ isOpen, onClose, appointment, onReportUploaded }) =
     const [investigations, setInvestigations] = useState([]);
     const [existingReports, setExistingReports] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [selectedFiles, setSelectedFiles] = useState({}); // Files selected for each investigation
+    const [selectedFiles, setSelectedFiles] = useState({});
     const [submitting, setSubmitting] = useState(false);
 
     // Fetch prescription and investigations when modal opens
@@ -37,18 +38,14 @@ const UploadReportModal = ({ isOpen, onClose, appointment, onReportUploaded }) =
         try {
             setLoading(true);
             
-            // Fetch prescription details
             const prescriptionResponse = await axios.get(`/api/prescriptions/appointment/${appointment.appointment_id}`);
             setPrescription(prescriptionResponse.data);
 
             if (prescriptionResponse.data?.prescription_id) {
-                // Fetch investigations from prescription
                 const investigationsResponse = await axios.get(`/api/prescription-investigations/prescription/${prescriptionResponse.data.prescription_id}`);
                 setInvestigations(investigationsResponse.data);
 
-                // Fetch existing reports
                 const reportsResponse = await axios.get(`/api/investigation-reports/prescription/${prescriptionResponse.data.prescription_id}`);
-                console.log('Existing reports response:', reportsResponse.data);
                 setExistingReports(reportsResponse.data);
             }
         } catch (error) {
@@ -63,7 +60,6 @@ const UploadReportModal = ({ isOpen, onClose, appointment, onReportUploaded }) =
         }
     };
 
-    // Handle file selection for each investigation
     const handleFileSelect = (investigationId, file) => {
         setSelectedFiles(prev => ({
             ...prev,
@@ -71,7 +67,6 @@ const UploadReportModal = ({ isOpen, onClose, appointment, onReportUploaded }) =
         }));
     };
 
-    // Remove selected file for an investigation
     const handleRemoveSelectedFile = (investigationId) => {
         setSelectedFiles(prev => {
             const updated = { ...prev };
@@ -80,7 +75,6 @@ const UploadReportModal = ({ isOpen, onClose, appointment, onReportUploaded }) =
         });
     };
 
-    // Submit all selected files at once
     const handleSubmitAllFiles = async () => {
         const filesToUpload = Object.entries(selectedFiles);
         
@@ -98,7 +92,6 @@ const UploadReportModal = ({ isOpen, onClose, appointment, onReportUploaded }) =
             setSubmitting(true);
             const uploadPromises = [];
 
-            // Create upload promises for each selected file
             filesToUpload.forEach(([investigationId, file]) => {
                 const formData = new FormData();
                 formData.append('reportFile', file);
@@ -113,13 +106,8 @@ const UploadReportModal = ({ isOpen, onClose, appointment, onReportUploaded }) =
                 );
             });
 
-            // Wait for all uploads to complete
             await Promise.all(uploadPromises);
-
-            // Clear selected files
             setSelectedFiles({});
-
-            // Refresh existing reports
             await fetchPrescriptionData();
             
             if (onReportUploaded) onReportUploaded();
@@ -176,12 +164,12 @@ const UploadReportModal = ({ isOpen, onClose, appointment, onReportUploaded }) =
         const hasSelectedFile = selectedFiles[investigationId];
         
         if (reports.length > 0) {
-            return <CheckCircle className="w-5 h-5 text-green-600" />;
+            return <CheckCircle className="w-4 h-4 text-green-600" />;
         }
         if (hasSelectedFile) {
-            return <Clock className="w-5 h-5 text-blue-600" />;
+            return <Clock className="w-4 h-4 text-blue-600" />;
         }
-        return <AlertCircle className="w-5 h-5 text-amber-600" />;
+        return <AlertCircle className="w-4 h-4 text-amber-600" />;
     };
 
     const getStatusText = (investigationId) => {
@@ -189,7 +177,7 @@ const UploadReportModal = ({ isOpen, onClose, appointment, onReportUploaded }) =
         const hasSelectedFile = selectedFiles[investigationId];
         
         if (reports.length > 0) return 'Uploaded';
-        if (hasSelectedFile) return 'Ready to Upload';
+        if (hasSelectedFile) return 'Ready';
         return 'Pending';
     };
 
@@ -208,7 +196,7 @@ const UploadReportModal = ({ isOpen, onClose, appointment, onReportUploaded }) =
             onClose={onClose}
             title="Upload Investigation Reports"
             subtitle="Upload your test results as prescribed by the doctor"
-            size="lg"
+            size="md"
         >
             {loading ? (
                 <div className="flex items-center justify-center py-12">
@@ -216,55 +204,59 @@ const UploadReportModal = ({ isOpen, onClose, appointment, onReportUploaded }) =
                     <span className="text-slate-600">Loading prescription data...</span>
                 </div>
             ) : (
-                <div className="space-y-6">
-                    {/* Appointment Info Card */}
-                    <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200 p-6 shadow-sm">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
-                                <Stethoscope className="w-8 h-8 text-white" />
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="text-xl font-bold text-slate-800">
-                                    Dr. {appointment.first_name} {appointment.last_name}
-                                </h3>
-                                <p className="text-sm text-slate-600 mb-2 flex items-center">
-                                    <Building2 className="w-4 h-4 mr-1" />
-                                    {appointment.department_name}
-                                </p>
-                                <div className="flex items-center space-x-4 text-sm text-slate-600">
-                                    <div className="flex items-center">
-                                        <Calendar className="w-4 h-4 mr-1 text-blue-500" />
-                                        <span>{formatDate(appointment.appointment_date)}</span>
-                                    </div>
-                                    <div className="flex items-center">
-                                        <Clock className="w-4 h-4 mr-1 text-green-500" />
-                                        <span>{formatTime(appointment.appointment_time)}</span>
-                                    </div>
+                <div className="space-y-4">
+                    {/* Compact Appointment Header */}
+                    <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200 p-4 shadow-sm">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
+                                    <Stethoscope className="w-6 h-6 text-white" />
                                 </div>
-                                {appointment.reason && (
-                                    <div className="mt-2">
-                                        <span className="text-sm text-slate-600">
-                                            <span className="font-medium text-purple-600">Reason:</span> {appointment.reason}
-                                        </span>
-                                    </div>
-                                )}
+                                <div>
+                                    <h3 className="text-base font-bold text-slate-800">
+                                        Dr. {appointment.first_name} {appointment.last_name}
+                                    </h3>
+                                    <p className="text-xs text-slate-600 flex items-center">
+                                        <Building2 className="w-3 h-3 mr-1" />
+                                        {appointment.department_name}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-center space-x-3 text-xs">
+                                <div className="flex items-center space-x-1 bg-white/60 backdrop-blur-sm rounded-lg px-2 py-1">
+                                    <Calendar className="w-3 h-3 text-blue-500" />
+                                    <span className="font-medium text-slate-700">{formatDate(appointment.appointment_date)}</span>
+                                </div>
+                                <div className="flex items-center space-x-1 bg-white/60 backdrop-blur-sm rounded-lg px-2 py-1">
+                                    <Clock className="w-3 h-3 text-green-500" />
+                                    <span className="font-medium text-slate-700">{formatTime(appointment.appointment_time)}</span>
+                                </div>
                             </div>
                         </div>
+                        
+                        {appointment.reason && (
+                            <div className="mt-2 bg-white/60 backdrop-blur-sm rounded-lg p-2">
+                                <span className="text-xs">
+                                    <span className="font-medium text-purple-700">Reason:</span>{' '}
+                                    <span className="text-slate-600">{appointment.reason}</span>
+                                </span>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Prescription Info */}
+                    {/* Compact Prescription Info */}
                     {prescription && (
-                        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 p-6 shadow-sm">
-                            <h4 className="text-lg font-semibold text-slate-800 mb-3 flex items-center">
-                                <FileText className="w-5 h-5 mr-2 text-green-600" />
-                                Prescription Details
+                        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 p-4 shadow-sm">
+                            <h4 className="text-sm font-semibold text-slate-800 mb-2 flex items-center">
+                                <FileText className="w-4 h-4 mr-2 text-green-600" />
+                                Prescription Summary
                             </h4>
-                            <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 border border-green-300">
-                                <div className="text-sm text-slate-700">
+                            <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-300">
+                                <div className="text-xs text-slate-700">
                                     <span className="font-medium text-green-700">Diagnosis:</span> {prescription.diagnosis}
                                 </div>
                                 {prescription.instructions && (
-                                    <div className="text-sm text-slate-700 mt-2">
+                                    <div className="text-xs text-slate-700 mt-1">
                                         <span className="font-medium text-green-700">Instructions:</span> {prescription.instructions}
                                     </div>
                                 )}
@@ -272,21 +264,21 @@ const UploadReportModal = ({ isOpen, onClose, appointment, onReportUploaded }) =
                         </div>
                     )}
 
-                    {/* Investigation Reports Upload Section */}
-                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200 p-6 shadow-sm">
-                        <h4 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
-                            <Upload className="w-5 h-5 mr-2 text-purple-600" />
-                            Required Investigation Reports ({investigations.length})
+                    {/* Investigation Reports - Grid Layout */}
+                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200 p-4 shadow-sm">
+                        <h4 className="text-sm font-semibold text-slate-800 mb-3 flex items-center">
+                            <Upload className="w-4 h-4 mr-2 text-purple-600" />
+                            Required Tests ({investigations.length})
                         </h4>
                         
                         {investigations.length === 0 ? (
-                            <div className="text-center py-8">
-                                <FileText className="w-12 h-12 text-purple-300 mx-auto mb-3" />
-                                <p className="text-slate-600">No investigations prescribed</p>
-                                <p className="text-sm text-slate-500">Your doctor hasn't prescribed any tests for this appointment.</p>
+                            <div className="text-center py-6">
+                                <FileText className="w-8 h-8 text-purple-300 mx-auto mb-2" />
+                                <p className="text-sm text-slate-600">No investigations prescribed</p>
+                                <p className="text-xs text-slate-500">Your doctor hasn't prescribed any tests for this appointment.</p>
                             </div>
                         ) : (
-                            <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {investigations.map((investigation) => {
                                     const reports = getReportsForInvestigation(investigation.investigation_id);
                                     const selectedFile = selectedFiles[investigation.investigation_id];
@@ -294,112 +286,107 @@ const UploadReportModal = ({ isOpen, onClose, appointment, onReportUploaded }) =
                                     return (
                                         <div
                                             key={investigation.investigation_id}
-                                            className="bg-white/70 backdrop-blur-sm rounded-lg p-4 border border-purple-200 shadow-sm"
+                                            className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-purple-200 shadow-sm"
                                         >
-                                            <div className="flex items-start justify-between mb-3">
-                                                <div className="flex items-center space-x-3">
+                                            {/* Header */}
+                                            <div className="flex items-center justify-between mb-2">
+                                                <div className="flex items-center space-x-2">
                                                     {getUploadStatusIcon(investigation.investigation_id)}
-                                                    <div>
-                                                        <h5 className="font-semibold text-slate-800">{investigation.name}</h5>
-                                                        {investigation.description && (
-                                                            <p className="text-sm text-slate-600">{investigation.description}</p>
-                                                        )}
+                                                    <div className="min-w-0 flex-1">
+                                                        <h5 className="font-semibold text-slate-800 text-sm truncate">{investigation.name}</h5>
                                                         {investigation.notes && (
-                                                            <p className="text-sm text-purple-600 mt-1">
-                                                                <span className="font-medium">Doctor's Notes:</span> {investigation.notes}
+                                                            <p className="text-xs text-purple-600 truncate">
+                                                                <span className="font-medium">Notes:</span> {investigation.notes}
                                                             </p>
                                                         )}
                                                     </div>
                                                 </div>
-                                                <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(investigation.investigation_id)}`}>
+                                                <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(investigation.investigation_id)} flex-shrink-0`}>
                                                     {getStatusText(investigation.investigation_id)}
                                                 </span>
                                             </div>
 
                                             {/* File Selection */}
-                                            <div className="mb-3">
-                                                <label className="block text-sm font-medium text-slate-700 mb-2">
-                                                    Select Report File
-                                                </label>
-                                                
+                                            <div className="mb-2">
                                                 {!selectedFile ? (
-                                                    <input
-                                                        type="file"
-                                                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                                                        onChange={(e) => {
-                                                            const file = e.target.files[0];
-                                                            if (file) {
-                                                                handleFileSelect(investigation.investigation_id, file);
-                                                            }
-                                                        }}
-                                                        className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-                                                    />
+                                                    <label className="cursor-pointer">
+                                                        <input
+                                                            type="file"
+                                                            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                                            onChange={(e) => {
+                                                                const file = e.target.files[0];
+                                                                if (file) {
+                                                                    handleFileSelect(investigation.investigation_id, file);
+                                                                }
+                                                            }}
+                                                            className="hidden"
+                                                        />
+                                                        <div className="flex items-center justify-center space-x-2 py-2 px-3 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg border-2 border-dashed border-purple-300 transition-colors">
+                                                            <Plus className="w-4 h-4" />
+                                                            <span className="text-xs font-medium">Choose File</span>
+                                                        </div>
+                                                    </label>
                                                 ) : (
-                                                    <div className="flex items-center justify-between bg-blue-50 rounded-lg p-3 border border-blue-200">
-                                                        <div className="flex items-center space-x-3">
-                                                            <File className="w-4 h-4 text-blue-600" />
-                                                            <div>
-                                                                <p className="text-sm font-medium text-slate-800">{selectedFile.name}</p>
+                                                    <div className="flex items-center justify-between bg-blue-50 rounded-lg p-2 border border-blue-200">
+                                                        <div className="flex items-center space-x-2 min-w-0 flex-1">
+                                                            <File className="w-3 h-3 text-blue-600 flex-shrink-0" />
+                                                            <div className="min-w-0 flex-1">
+                                                                <p className="text-xs font-medium text-slate-800 truncate" title={selectedFile.name}>
+                                                                    {selectedFile.name}
+                                                                </p>
                                                                 <p className="text-xs text-slate-500">
-                                                                    Size: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                                                                    {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                                                                 </p>
                                                             </div>
                                                         </div>
                                                         <button
                                                             onClick={() => handleRemoveSelectedFile(investigation.investigation_id)}
-                                                            className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+                                                            className="p-1 text-slate-400 hover:text-red-500 transition-colors flex-shrink-0"
                                                         >
-                                                            <X className="w-4 h-4" />
+                                                            <X className="w-3 h-3" />
                                                         </button>
                                                     </div>
                                                 )}
-                                                
-                                                <p className="text-xs text-slate-500 mt-1">
-                                                    Supported formats: PDF, JPG, PNG, DOC, DOCX (Max 10MB)
-                                                </p>
                                             </div>
 
                                             {/* Existing Reports */}
                                             {reports.length > 0 && (
-                                                <div>
-                                                    <h6 className="text-sm font-medium text-slate-700 mb-2">Uploaded Files:</h6>
-                                                    <div className="space-y-2">
-                                                        {reports.map((report) => (
-                                                            <div
-                                                                key={report.report_id}
-                                                                className="flex items-center justify-between bg-white rounded-lg p-3 border border-slate-200"
-                                                            >
-                                                                <div className="flex items-center space-x-3">
-                                                                    <File className="w-4 h-4 text-blue-600" />
-                                                                    <div>
-                                                                        <p className="text-sm font-medium text-slate-800">{report.file_name}</p>
-                                                                        <p className="text-xs text-slate-500">
-                                                                            Uploaded: {new Date(report.uploaded_at).toLocaleDateString()}
-                                                                        </p>
-                                                                        {report.notes && (
-                                                                            <p className="text-xs text-slate-600">Notes: {report.notes}</p>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                                <div className="flex items-center space-x-2">
-                                                                    <button
-                                                                        onClick={() => handleDownloadReport(report.report_id, report.file_name)}
-                                                                        className="flex items-center space-x-1 px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs font-medium transition-all duration-200"
-                                                                    >
-                                                                        <Download className="w-3 h-3" />
-                                                                        <span>Download</span>
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => handleDeleteReport(report.report_id)}
-                                                                        className="flex items-center space-x-1 px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-medium transition-all duration-200"
-                                                                    >
-                                                                        <Trash2 className="w-3 h-3" />
-                                                                        <span>Delete</span>
-                                                                    </button>
+                                                <div className="space-y-1">
+                                                    <h6 className="text-xs font-medium text-slate-700">Uploaded:</h6>
+                                                    {reports.map((report) => (
+                                                        <div
+                                                            key={report.report_id}
+                                                            className="flex items-center justify-between bg-white rounded p-2 border border-slate-200"
+                                                        >
+                                                            <div className="flex items-center space-x-2 min-w-0 flex-1">
+                                                                <File className="w-3 h-3 text-blue-600 flex-shrink-0" />
+                                                                <div className="min-w-0 flex-1">
+                                                                    <p className="text-xs font-medium text-slate-800 break-words leading-relaxed" title={report.file_name}>
+                                                                        {report.file_name}
+                                                                    </p>
+                                                                    <p className="text-xs text-slate-500">
+                                                                        {new Date(report.uploaded_at).toLocaleDateString()}
+                                                                    </p>
                                                                 </div>
                                                             </div>
-                                                        ))}
-                                                    </div>
+                                                            <div className="flex items-center space-x-1 flex-shrink-0">
+                                                                <button
+                                                                    onClick={() => handleDownloadReport(report.report_id, report.file_name)}
+                                                                    className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors"
+                                                                    title="Download"
+                                                                >
+                                                                    <Download className="w-3 h-3" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteReport(report.report_id)}
+                                                                    className="p-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
+                                                                    title="Delete"
+                                                                >
+                                                                    <Trash2 className="w-3 h-3" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             )}
                                         </div>
@@ -408,26 +395,26 @@ const UploadReportModal = ({ isOpen, onClose, appointment, onReportUploaded }) =
                             </div>
                         )}
 
-                        {/* Single Submit Button for All Files */}
+                        {/* Upload Button */}
                         {Object.keys(selectedFiles).length > 0 && (
-                            <div className="mt-6 pt-4 border-t border-purple-300">
+                            <div className="mt-4 pt-3 border-t border-purple-300">
                                 <div className="flex items-center justify-between">
-                                    <div className="text-sm text-slate-600">
-                                        {Object.keys(selectedFiles).length} file(s) ready to upload
+                                    <div className="text-xs text-slate-600">
+                                        <span className="font-medium">{Object.keys(selectedFiles).length}</span> file(s) ready to upload
                                     </div>
                                     <button
                                         onClick={handleSubmitAllFiles}
                                         disabled={submitting}
-                                        className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                                        className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
                                     >
                                         {submitting ? (
                                             <>
-                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
                                                 <span>Uploading...</span>
                                             </>
                                         ) : (
                                             <>
-                                                <Upload className="w-4 h-4" />
+                                                <Upload className="w-3 h-3" />
                                                 <span>Upload All Reports</span>
                                             </>
                                         )}
@@ -437,25 +424,28 @@ const UploadReportModal = ({ isOpen, onClose, appointment, onReportUploaded }) =
                         )}
                     </div>
 
-                    {/* Instructions */}
-                    <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl border border-orange-200 p-6 shadow-sm">
-                        <h4 className="text-lg font-semibold text-slate-700 mb-3">Upload Instructions</h4>
-                        <div className="space-y-2 text-sm text-slate-600">
-                            <div className="flex items-start space-x-2">
-                                <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-                                <span>Select files for each investigation, then click "Upload All Reports" to submit</span>
+                    {/* Compact Instructions */}
+                    <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl border border-orange-200 p-3 shadow-sm">
+                        <h4 className="text-sm font-semibold text-slate-700 mb-2 flex items-center">
+                            <Eye className="w-4 h-4 mr-2 text-orange-600" />
+                            Quick Tips
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-slate-600">
+                            <div className="flex items-center space-x-2">
+                                <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
+                                <span>Select files then click "Upload All Reports"</span>
                             </div>
-                            <div className="flex items-start space-x-2">
-                                <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-                                <span>Upload clear, readable images or PDF files of your test reports</span>
+                            <div className="flex items-center space-x-2">
+                                <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
+                                <span>Ensure images are clear and readable</span>
                             </div>
-                            <div className="flex items-start space-x-2">
-                                <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-                                <span>Ensure all patient information and test results are visible</span>
+                            <div className="flex items-center space-x-2">
+                                <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
+                                <span>PDF, JPG, PNG, DOC formats supported</span>
                             </div>
-                            <div className="flex items-start space-x-2">
-                                <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-                                <span>You can upload multiple files for each investigation if needed</span>
+                            <div className="flex items-center space-x-2">
+                                <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
+                                <span>Maximum file size: 10MB per file</span>
                             </div>
                         </div>
                     </div>
