@@ -238,6 +238,48 @@ const getAppointmentsByDoctorAndStatus = async (req, res) => {
   }
 };
 
+
+// @desc    Get all completed appointments for a doctor that have investigation reports
+// @route   GET /api/appointments/doctor/:doctorId/investigation-reports
+const getInvestigationReportAppointmentsByDoctor = async (req, res) => {
+  const { doctorId } = req.params;
+  try {
+    const query = `
+      -- Pull full appointment + patient info from your stored proc,
+      -- then join on prescription & investigation_report aggregates
+      SELECT
+        b.*,
+        agg.prescription_id,
+        agg.investigation_count
+      FROM get_appointments_by_doctor_and_status($1, 'completed') AS b
+      JOIN (
+        SELECT
+          a.appointment_id,
+          p.prescription_id,
+          COUNT(ir.report_id) AS investigation_count
+        FROM appointment a
+        JOIN prescription p           ON a.appointment_id = p.appointment_id
+        JOIN investigation_report ir  ON ir.prescription_id = p.prescription_id
+        WHERE a.doctor_id = $1
+          AND a.status    = 'completed'
+        GROUP BY a.appointment_id, p.prescription_id
+      ) AS agg
+        ON agg.appointment_id = b.appointment_id
+      ORDER BY b.appointment_date ASC, b.appointment_time ASC
+    `;
+    const { rows } = await pool.query(query, [doctorId]);
+    res.status(200).json(rows);
+  } catch (err) {
+    console.error(
+      "Get appointments by investigation report status error:",
+      err
+    );
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+
+
 // @route GET /api/appointments/doctor/:doctorId/stats
 const getDoctorAppointmentStats = async (req, res) => {
   const { doctorId } = req.params;
@@ -252,6 +294,28 @@ const getDoctorAppointmentStats = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+/**
+ * @desc    Get aggregated appointment/payment/investigation stats
+ * @route   GET /api/appointments/doctor/:doctorId/stats
+ */
+const getAppointmentStats = async (req, res) => {
+  const { doctorId } = req.params;
+  try {
+    // Call the SQL function we just created
+    const { rows } = await pool.query(
+      'SELECT * FROM get_appointment_stats_by_doctor($1)',
+      [doctorId]
+    );
+    // rows[0] contains: pending_count, completed_count, cancelled_count,
+    //                  paid_count, unpaid_count, investigation_reports_count
+    res.status(200).json(rows[0]);
+  } catch (err) {
+    console.error('Error fetching appointment stats:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 
 const deleteAppointment = async (req, res) => {
     const { id } = req.params;
@@ -278,7 +342,9 @@ module.exports = {
     getAppointmentsByDoctor,
     getAppointmentsByPatient,
     getAppointmentsByDoctorAndStatus,
+    getInvestigationReportAppointmentsByDoctor,
     getDoctorAppointmentStats,
     updateAppointment,
     deleteAppointment,
+    getAppointmentStats,
 };

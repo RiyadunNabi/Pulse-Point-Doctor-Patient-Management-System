@@ -6,117 +6,167 @@ Pulse-Point-Doctor-Patient-Management-System/
 │  ├─ package.json
 │  ├─ postcss.config.js
 │  ├─ public
-│  │  ├─ favicon.ico
-│  │  ├─ index.html
-│  │  ├─ logo192.png
-│  │  ├─ logo512.png
-│  │  ├─ manifest.json
-│  │  └─ robots.txt
-│  ├─ src
-│  │  ├─ App.css
-│  │  ├─ App.js
-│  │  ├─ App.test.js
-│  │  ├─ components
-│  │  │  ├─ AuthPage.js
-│  │  │  ├─ Booking
-│  │  │  │  └─ PatientBookingModal.js
-│  │  │  ├─ DoctorDashboard
-│  │  │  │  ├─ AppointmentStatsSection.js
-│  │  │  │  ├─ DoctorDashboard.css
-│  │  │  │  ├─ DoctorDashboard.js
-│  │  │  │  ├─ DoctorProfileCard.js
-│  │  │  │  ├─ EditDoctorProfileModal
-│  │  │  │  │  ├─ DoctorProfileForm.js
-│  │  │  │  │  ├─ DoctorProfilePhotoSection.js
-│  │  │  │  │  └─ EditDoctorProfileModal.js
-│  │  │  │  ├─ HealthInsightsWidget.js
-│  │  │  │  ├─ MedicalInsightsSection.js
-│  │  │  │  ├─ PatientAnalyticsSection.js
-│  │  │  │  ├─ QuickStatsWidget.js
-│  │  │  │  ├─ RatingsSection.js
-│  │  │  │  ├─ RevenueSection.js
-│  │  │  │  ├─ ScheduleModal.js
-│  │  │  │  ├─ ScheduleSection.js
-│  │  │  │  └─ UpcomingAppointmentsSection.js
-│  │  │  ├─ DoctorsList.js
-│  │  │  ├─ InputField.js
-│  │  │  ├─ LoginForm.js
-│  │  │  ├─ PatientDashboard
-│  │  │  │  ├─ DashboardContent
-│  │  │  │  │  ├─ AppointmentsView.js
-│  │  │  │  │  ├─ ArticlesView.js
-│  │  │  │  │  ├─ DashboardView.js
-│  │  │  │  │  └─ DepartmentsView.js
-│  │  │  │  ├─ DoctorsSection
-│  │  │  │  │  ├─ DoctorCard.js
-│  │  │  │  │  ├─ DoctorsList.js
-│  │  │  │  │  └─ index.js
-│  │  │  │  ├─ EditHealthLogModal
-│  │  │  │  │  ├─ EditHealthLogModal.js
-│  │  │  │  │  ├─ HealthLogForm.js
-│  │  │  │  │  └─ index.js
-│  │  │  │  ├─ EditProfileModal
-│  │  │  │  │  ├─ EditProfileModal.js
-│  │  │  │  │  ├─ ProfileForm.js
-│  │  │  │  │  └─ ProfilePhotoSection.js
-│  │  │  │  ├─ GraphSection.js
-│  │  │  │  ├─ GraphTabs.js
-│  │  │  │  ├─ HealthLogSection.js
-│  │  │  │  ├─ MedicalDocumentsModal
-│  │  │  │  │  ├─ DocumentList.js
-│  │  │  │  │  ├─ DocumentUploadForm.js
-│  │  │  │  │  └─ MedicalDocumentsModal.js
-│  │  │  │  ├─ MedicalDocumentsSection.js
-│  │  │  │  ├─ Navigation
-│  │  │  │  │  ├─ DashboardNavigation.js
-│  │  │  │  │  └─ PulsePointLogo.js
-│  │  │  │  ├─ PatientDashboard.js
-│  │  │  │  ├─ ProfileCard.js
-│  │  │  │  ├─ hooks
-│  │  │  │  │  ├─ useDoctors.js
-│  │  │  │  │  ├─ useHealthLogs.js
-│  │  │  │  │  └─ usePatientData.js
-│  │  │  │  ├─ unnecessary_AppointmentModal
-│  │  │  │  │  └─ AppointmentModal.js
-│  │  │  │  └─ utils
-│  │  │  │     └─ constants.js
-│  │  │  ├─ ProtectedRoute.js
-│  │  │  └─ shared
-│  │  │     ├─ InputField.js
-│  │  │     └─ Modal.js
-│  │  ├─ index.css
-│  │  ├─ index.js
-│  │  ├─ logo.svg
-│  │  ├─ reportWebVitals.js
-│  │  ├─ setupTests.js
-│  │  └─ utils
-│  │     └─ axiosConfig.js
-│  └─ tailwind.config.js
-├─ databas
+└── src/
+    ├── App.css
+    ├── App.js
+    ├── App.test.js
+    ├── index.css
+    ├── index.js
+    ├── logo.svg
+    ├── reportWebVitals.js
+    ├── setupTests.js
+    ├── utils/
+    │   └── axiosConfig.js
+    └── components/
+        ├── AuthPage.js
+        ├── DoctorsList.js
+        ├── InputField.js
+        ├── LoginForm.js
+        ├── ProtectedRoute.js
+        ├── shared/
+        │   ├── InputField.js
+        │   └── Modal.js
+        ├── PatientDashboard/
+        │   ├── GraphSection.js
+        │   ├── GraphTabs.js
+        │   ├── HealthLogSection.js
+        │   ├── MedicalDocumentsSection.js
+        │   ├── PatientDashboard.js
+        │   ├── ProfileCard.js
+        │   ├── utils/
+        │   │   └── constants.js
+        │   ├── unnecessary_AppointmentModal/
+        │   │   └── AppointmentModal.js
+        │   ├── PatientAppointmentsPage/
+        │   │   ├── oldPatientAppointmentsPage.js
+        │   │   ├── PatientAppointmentsPage.js
+        │   │   ├── utils/
+        │   │   │   └── dateUtils.js
+        │   │   ├── hooks/
+        │   │   │   └── useAppointments.js
+        │   │   └── components/
+        │   │       ├── AppointmentCard.js
+        │   │       ├── EmptyState.js
+        │   │       ├── PrescriptionView.js
+        │   │       ├── SearchBar.js
+        │   │       ├── TabNavigation.js
+        │   │       ├── UploadReportModal/
+        │   │       │   └── UploadReportModal.js
+        │   │       ├── ReviewModal/
+        │   │       │   └── ReviewModal.js
+        │   │       └── PaymentModal/
+        │   │           └── PaymentModal.js
+        │   ├── Navigation/
+        │   │   ├── DashboardNavigation.js
+        │   │   └── PulsePointLogo.js
+        │   ├── MedicalDocumentsModal/
+        │   │   ├── DocumentList.js
+        │   │   ├── DocumentUploadForm.js
+        │   │   └── MedicalDocumentsModal.js
+        │   ├── hooks/
+        │   │   ├── useDoctors.js
+        │   │   ├── useHealthLogs.js
+        │   │   └── usePatientData.js
+        │   ├── EditProfileModal/
+        │   │   ├── EditProfileModal.js
+        │   │   ├── ProfileForm.js
+        │   │   └── ProfilePhotoSection.js
+        │   ├── EditHealthLogModal/
+        │   │   ├── EditHealthLogModal.js
+        │   │   ├── HealthLogForm.js
+        │   │   └── index.js
+        │   ├── DoctorsSection/
+        │   │   ├── DoctorCard.js
+        │   │   ├── DoctorsFilters.js
+        │   │   ├── DoctorsList.js
+        │   │   ├── DoctorsPage.js
+        │   │   ├── DoctorsPagination.js
+        │   │   └── index.js
+        │   ├── DepartmentsSection/
+        │   │   └── DepartmentsPage.js
+        │   └── DashboardContent/
+        │       ├── AppointmentsView.js
+        │       ├── ArticlesView.js
+        │       ├── DashboardView.js
+        │       └── DepartmentsView.js
+        ├── DoctorDashboard/
+        │   ├── AppointmentStatsSection.js
+        │   ├── DoctorDashboard.css
+        │   ├── DoctorDashboard.js
+        │   ├── DoctorProfileCard.js
+        │   ├── HealthInsightsWidget.js
+        │   ├── MedicalInsightsSection.js
+        │   ├── PatientAnalyticsSection.js
+        │   ├── QuickStatsWidget.js
+        │   ├── RatingsSection.js
+        │   ├── RevenueSection.js
+        │   ├── ScheduleModal.js
+        │   ├── ScheduleSection.js
+        │   ├── UpcomingAppointmentsSection.js
+        │   ├── utils/
+        │   │   └── dateUtils.js
+        │   ├── ManageAppointments/
+        │   │   ├── AppointmentCard.js
+        │   │   ├── AppointmentFilters.js
+        │   │   ├── AppointmentTabs.js
+        │   │   ├── index.js
+        │   │   ├── ManageAppointments.js
+        │   │   ├── PrescriptionModal/
+        │   │   │   ├── DrugSelector.js
+        │   │   │   ├── FileUpload.js
+        │   │   │   ├── index.js
+        │   │   │   ├── InvestigationSelector.js
+        │   │   │   ├── PrescriptionForm.js
+        │   │   │   ├── PrescriptionModal.js
+        │   │   │   └── hooks/
+        │   │   │       ├── useFileUpload.js
+        │   │   │       └── usePrescriptionData.js
+        │   │   ├── PaymentManagement/
+        │   │   │   ├── PaymentAppointmentCard.js
+        │   │   │   └── PaymentTabs.js
+        │   │   ├── PatientDetailsModal/
+        │   │   │   ├── HealthLogsSection.js
+        │   │   │   ├── MedicalDocumentsSection.js
+        │   │   │   ├── PatientDetailsModal.js
+        │   │   │   └── PatientInfo.js
+        │   │   └── InvestigationReportModal/
+        │   │       └── InvestigationReportModal.js
+        │   └── EditDoctorProfileModal/
+        │       ├── DoctorProfileForm.js
+        │       ├── DoctorProfilePhotoSection.js
+        │       └── EditDoctorProfileModal.js
+        └── Booking/
+            ├── BookingSuccessModal.js
+            ├── HealthDataSelector.js
+            └── PatientBookingModal.js
+
+├─ database
 │  └─ Main_Schema_final.sq
 └─ server
-   ├─ controllers
-   │  ├─ appointmentController.js
-   │  ├─ authController.js
-   │  ├─ bookmarkedDoctorController.js
-   │  ├─ departmentController.js
-   │  ├─ doctorController.js
-   │  ├─ drugController.js
-   │  ├─ healthArticleController.js
-   │  ├─ healthLogController.js
-   │  ├─ investigationController.js
-   │  ├─ investigationReportController.js
-   │  ├─ medicalDocumentController.js
-   │  ├─ notificationController.js
-   │  ├─ patientController.js
-   │  ├─ paymentController.js
-   │  ├─ prescriptionController.js
-   │  ├─ prescriptionDrugController.js
-   │  ├─ prescriptionFileController.js
-   │  ├─ prescriptionInvestigationController.js
-   │  ├─ reviewController.js
-   │  ├─ scheduleController.js
-   │  └─ userController.js
+   ├─ └── controllers/
+    ├── appointmentController.js
+    ├── appointmentHealthLogMedicalDocumentsController.js
+    ├── authController.js
+    ├── bookmarkedDoctorController.js
+    ├── departmentController.js
+    ├── doctorController.js
+    ├── drugController.js
+    ├── healthArticleController.js
+    ├── healthLogController.js
+    ├── investigationController.js
+    ├── investigationReportController.js
+    ├── medicalDocumentController.js
+    ├── notificationController.js
+    ├── patientController.js
+    ├── paymentController.js
+    ├── prescriptionController.js
+    ├── prescriptionDrugController.js
+    ├── prescriptionFileController.js
+    ├── prescriptionInvestigationController.js
+    ├── reviewController.js
+    ├── scheduleController.js
+    └── userController.js
+
    ├─ db
    │  └─ connection.js
    ├─ index.js
@@ -149,7 +199,6 @@ Pulse-Point-Doctor-Patient-Management-System/
    ├─ tempCodeRunnerFile.js
    └─ uploads
       ├─ article_images
-      │  └─ article-1750793586050.png
       ├─ investigation_reports
-      │  └─ report-1750790017368.png
       └─ medical_documents
+      └─ prescription_file

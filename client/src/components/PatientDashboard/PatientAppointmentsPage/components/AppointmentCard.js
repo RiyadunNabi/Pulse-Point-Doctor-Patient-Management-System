@@ -63,9 +63,9 @@ const AppointmentCard = ({
     // Get payment status badge
     const getPaymentStatusBadge = (status) => {
         const statusConfig = {
-            success: { color: 'bg-green-50 text-green-700 border-green-200', label: 'Paid', icon: '✅' },
-            pending: { color: 'bg-amber-50 text-amber-700 border-amber-200', label: 'Pending', icon: '⏳' },
-            failed: { color: 'bg-red-50 text-red-700 border-red-200', label: 'Failed', icon: '❌' },
+            paid: { color: 'bg-green-50 text-green-700 border-green-200', label: 'Paid', icon: '✅' },
+            // pending: { color: 'bg-amber-50 text-amber-700 border-amber-200', label: 'Pending', icon: '⏳' },
+            // failed: { color: 'bg-red-50 text-red-700 border-red-200', label: 'Failed', icon: '❌' },
             unpaid: { color: 'bg-slate-50 text-slate-700 border-slate-200', label: 'Unpaid', icon: '💳' },
             unknown: { color: 'bg-gray-50 text-gray-600 border-gray-200', label: 'Unknown', icon: '❓' }
         };

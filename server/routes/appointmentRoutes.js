@@ -7,10 +7,12 @@ const {
     getAppointmentsByDoctor,
     getAppointmentsByPatient,
     getAppointmentsByDoctorAndStatus,
+    getInvestigationReportAppointmentsByDoctor,
     getDoctorAppointmentStats,
     updateAppointment,
     // cancelAppointment
     deleteAppointment,
+    getAppointmentStats,
 } = require("../controllers/appointmentController");
 
 router.route("/").post(createAppointment);
@@ -21,8 +23,17 @@ router.route("/:id")
     .patch(updateAppointment)
     .delete(deleteAppointment);
 
+router
+  .route('/doctor/:doctorId/stats')
+  .get(getAppointmentStats);
+
 router.route("/doctor/:doctorId").get(getAppointmentsByDoctor);
 router.get('/doctor/:doctorId/stats',getDoctorAppointmentStats);
+
+router.get(
+  '/doctor/:doctorId/investigation-reports',
+  getInvestigationReportAppointmentsByDoctor
+);
 
 //BEFORE the patient route
 router.get('/doctor/:doctorId/status/:status', getAppointmentsByDoctorAndStatus);

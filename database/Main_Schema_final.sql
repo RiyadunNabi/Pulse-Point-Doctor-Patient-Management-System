@@ -201,7 +201,8 @@ CREATE TABLE payments (
     appointment_id INTEGER REFERENCES appointment(appointment_id),
     amount NUMERIC(10,2),
     payment_method VARCHAR(50), -- e.g., "card", "bkash", "nagad"
-    payment_status VARCHAR(20) DEFAULT 'pending' CHECK (payment_status IN ('pending', 'success', 'failed', 'canceled', 'refunded')),
+    -- payment_status VARCHAR(20) DEFAULT 'pending' CHECK (payment_status IN ('pending', 'success', 'failed', 'canceled', 'refunded')),
+    payment_status VARCHAR(20) DEFAULT 'unpaid' CHECK (payment_status IN ('unpaid', 'paid')),
     transaction_id VARCHAR(100),
     paid_time TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

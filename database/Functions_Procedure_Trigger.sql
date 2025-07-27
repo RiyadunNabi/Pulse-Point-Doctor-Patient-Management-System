@@ -607,3 +607,51 @@ BEGIN
     ORDER BY d.doctor_id ASC;
 END;
 $$ LANGUAGE plpgsql;
+
+
+
+
+
+
+
+
+
+
+-----------------------------------------------
+-- server/databas/Functions_Procedure_Trigger.sql
+
+CREATE OR REPLACE FUNCTION get_appointment_stats_by_doctor(pid INTEGER)
+  RETURNS TABLE(
+    pending_count               BIGINT,
+    completed_count             BIGINT,
+    cancelled_count             BIGINT,
+    paid_count                  BIGINT,
+    unpaid_count                BIGINT,
+    investigation_reports_count BIGINT
+  )
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    COUNT(*) FILTER (WHERE a.status = 'pending')                                   AS pending_count,
+    COUNT(*) FILTER (WHERE a.status = 'completed')                                 AS completed_count,
+    COUNT(*) FILTER (WHERE a.status = 'cancelled')                                 AS cancelled_count,
+    COUNT(*) FILTER (WHERE COALESCE(pay.payment_status,'unpaid') = 'paid')         AS paid_count,
+    COUNT(*) FILTER (WHERE COALESCE(pay.payment_status,'unpaid') <> 'paid')        AS unpaid_count,
+    (
+      SELECT COUNT(DISTINCT a2.appointment_id)
+      FROM appointment a2
+      JOIN prescription p2
+        ON p2.appointment_id = a2.appointment_id
+      JOIN investigation_report ir
+        ON ir.prescription_id = p2.prescription_id
+      WHERE a2.doctor_id = pid
+        AND a2.status = 'completed'
+    )                                                                              AS investigation_reports_count
+  FROM appointment a
+  LEFT JOIN payments pay
+    ON pay.appointment_id = a.appointment_id
+  WHERE a.doctor_id = pid;
+END;
+$$ LANGUAGE plpgsql;
+

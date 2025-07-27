@@ -199,7 +199,7 @@
 // import React, { useState } from 'react';  
 // import { Calendar, Clock, User, Phone, Mail, Eye, FileText, Stethoscope, ClipboardList } from 'lucide-react';  
 // import PrescriptionModal from './PrescriptionModal';  
-  
+
 // // Helper functions (keep existing ones)  
 // const formatDate = (dateString) => {  
 //     return new Date(dateString).toLocaleDateString('en-US', {  
@@ -209,7 +209,7 @@
 //         day: 'numeric'  
 //     });  
 // };  
-  
+
 // const formatTime = (timeString) => {  
 //     return new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {  
 //         hour: 'numeric',  
@@ -217,14 +217,14 @@
 //         hour12: true  
 //     });  
 // };  
-  
+
 // const getStatusBadge = (status) => {  
 //     const statusConfig = {  
 //         pending: { bg: 'bg-gradient-to-r from-amber-100 to-orange-100', text: 'text-amber-700', border: 'border-amber-200', label: 'Pending' },  
 //         completed: { bg: 'bg-gradient-to-r from-green-100 to-emerald-100', text: 'text-green-700', border: 'border-green-200', label: 'Completed' },  
 //         cancelled: { bg: 'bg-gradient-to-r from-red-100 to-rose-100', text: 'text-red-700', border: 'border-red-200', label: 'Cancelled' }  
 //     };  
-  
+
 //     const config = statusConfig[status] || statusConfig.pending;  
 //     return (  
 //         <span className={`px-2.5 py-1.5 rounded-full text-xs font-medium border ${config.bg} ${config.text} ${config.border}`}>  
@@ -232,7 +232,7 @@
 //         </span>  
 //     );  
 // };  
-  
+
 // const AppointmentCard = ({   
 //     appointment,   
 //     onStatusUpdate,   
@@ -241,10 +241,10 @@
 // }) => {  
 //     const [showDetails, setShowDetails] = useState(false);  
 //     const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);  
-  
+
 //     const getActionButtons = () => {  
 //         const buttons = [];  
-  
+
 //         if (currentStatus === 'pending') {  
 //             buttons.push(  
 //                 <button  
@@ -265,10 +265,10 @@
 //                 </button>  
 //             );  
 //         }  
-  
+
 //         return buttons;  
 //     };  
-  
+
 //     return (  
 //         <>  
 //             <div className="bg-gradient-to-br from-sky-50 to-cyan-50 rounded-xl border border-sky-200 shadow-sm hover:shadow-lg hover:border-sky-300 transform hover:-translate-y-1 transition-all duration-300">  
@@ -295,7 +295,7 @@
 //                                     </div>  
 //                                 </div>  
 //                             </div>  
-  
+
 //                             {appointment.reason && (  
 //                                 <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 mb-3 border border-cyan-200">  
 //                                     <p className="text-sm text-slate-700">  
@@ -303,7 +303,7 @@
 //                                     </p>  
 //                                 </div>  
 //                             )}  
-  
+
 //                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-slate-600">  
 //                                 <div className="flex items-center space-x-2">  
 //                                     <Phone className="w-4 h-4 text-green-500" />  
@@ -315,10 +315,10 @@
 //                                 </div>  
 //                             </div>  
 //                         </div>  
-  
+
 //                         <div className="flex flex-col items-end space-y-3">  
 //                             {getStatusBadge(appointment.status)}  
-                              
+
 //                             <div className="grid grid-cols-2 gap-2">  
 //                                 <button  
 //                                     onClick={() => setShowDetails(!showDetails)}  
@@ -348,7 +348,7 @@
 //                                     <ClipboardList className="w-4 h-4" />  
 //                                 </button>  
 //                             </div>  
-                              
+
 //                             {getActionButtons().length > 0 && (  
 //                                 <div className="flex space-x-2">  
 //                                     {getActionButtons()}  
@@ -356,7 +356,7 @@
 //                             )}  
 //                         </div>  
 //                     </div>  
-  
+
 //                     {/* Expanded Details */}  
 //                     {showDetails && (  
 //                         <div className="mt-4 pt-4 border-t border-cyan-200">  
@@ -392,7 +392,7 @@
 //                     )}  
 //                 </div>  
 //             </div>  
-  
+
 //             {/* Prescription Modal */}  
 //             <PrescriptionModal  
 //                 isOpen={showPrescriptionModal}  
@@ -402,7 +402,7 @@
 //         </>  
 //     );  
 // };  
-  
+
 // export default AppointmentCard;  
 
 
@@ -679,16 +679,17 @@
 
 
 import React, { useState, useEffect } from 'react';
-import { 
-    Calendar, 
-    Clock, 
-    User, 
-    Phone, 
-    Mail, 
-    Eye, 
-    FileText, 
+import {
+    Calendar,
+    Clock,
+    User,
+    Phone,
+    Mail,
+    Eye,
+    FileText,
     Stethoscope,
-    DollarSign
+    DollarSign,
+    TestTube,
 } from 'lucide-react';
 import axios from 'axios';
 import PrescriptionModal from './PrescriptionModal';
@@ -713,23 +714,23 @@ const formatTime = (timeString) => {
 
 const getStatusBadge = (status) => {
     const statusConfig = {
-        pending: { 
-            bg: 'bg-gradient-to-r from-amber-100 to-orange-100', 
-            text: 'text-amber-800', 
+        pending: {
+            bg: 'bg-gradient-to-r from-amber-100 to-orange-100',
+            text: 'text-amber-800',
             border: 'border-amber-200',
             label: 'Pending',
             icon: '⏳'
         },
-        completed: { 
-            bg: 'bg-gradient-to-r from-green-100 to-emerald-100', 
-            text: 'text-green-800', 
+        completed: {
+            bg: 'bg-gradient-to-r from-green-100 to-emerald-100',
+            text: 'text-green-800',
             border: 'border-green-200',
             label: 'Completed',
             icon: '✅'
         },
-        cancelled: { 
-            bg: 'bg-gradient-to-r from-red-100 to-rose-100', 
-            text: 'text-red-800', 
+        cancelled: {
+            bg: 'bg-gradient-to-r from-red-100 to-rose-100',
+            text: 'text-red-800',
             border: 'border-red-200',
             label: 'Cancelled',
             icon: '❌'
@@ -745,11 +746,13 @@ const getStatusBadge = (status) => {
     );
 };
 
-const AppointmentCard = ({ 
-    appointment, 
-    onStatusUpdate, 
+const AppointmentCard = ({
+    appointment,
+    onStatusUpdate,
     onViewPatientDetails,
-    currentStatus 
+    onViewInvestigationReports,
+    currentStatus,
+    showInvestigationButton = false
 }) => {
     const [showDetails, setShowDetails] = useState(false);
     const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
@@ -785,9 +788,9 @@ const AppointmentCard = ({
     // Get payment status badge
     const getPaymentStatusBadge = (status) => {
         const statusConfig = {
-            success: { color: 'bg-green-50 text-green-700 border-green-200', label: 'Paid', icon: '✅' },
-            pending: { color: 'bg-amber-50 text-amber-700 border-amber-200', label: 'Pending', icon: '⏳' },
-            failed: { color: 'bg-red-50 text-red-700 border-red-200', label: 'Failed', icon: '❌' },
+            paid: { color: 'bg-green-50 text-green-700 border-green-200', label: 'Paid', icon: '✅' },
+            // pending: { color: 'bg-amber-50 text-amber-700 border-amber-200', label: 'Pending', icon: '⏳' },
+            // failed: { color: 'bg-red-50 text-red-700 border-red-200', label: 'Failed', icon: '❌' },
             unpaid: { color: 'bg-slate-50 text-slate-700 border-slate-200', label: 'Unpaid', icon: '💳' },
             unknown: { color: 'bg-gray-50 text-gray-600 border-gray-200', label: 'Unknown', icon: '❓' }
         };
@@ -846,7 +849,7 @@ const AppointmentCard = ({
 
     // Get prescription button text based on status
     const getPrescriptionButtonText = () => {
-        return currentStatus === 'completed' ? 'Edit Prescription' : 'Create Prescription';
+        return currentStatus === 'pending' ? 'Create Prescription' : 'Edit Prescription';
     };
 
     return (
@@ -873,7 +876,7 @@ const AppointmentCard = ({
                     {/* Action Buttons - Upper Right */}
                     <div className="flex flex-col items-end space-y-2 ml-4">
                         {getStatusBadge(appointment.status)}
-                        
+
                         {/* Action Buttons - Patient Colors */}
                         <div className="flex flex-wrap gap-1.5">
                             <button
@@ -892,7 +895,7 @@ const AppointmentCard = ({
                                 <Stethoscope className="w-3 h-3" />
                                 <span>Patient Details</span>
                             </button>
-                            {(currentStatus === 'pending' || currentStatus === 'completed') && (
+                            {(currentStatus === 'pending' || currentStatus === 'completed' || showInvestigationButton) && (
                                 <button
                                     onClick={() => setShowPrescriptionModal(true)}
                                     className="flex items-center space-x-1 px-2.5 py-1.5 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-xs font-medium transition-all duration-200 shadow-sm hover:shadow-md"
@@ -900,6 +903,18 @@ const AppointmentCard = ({
                                 >
                                     <FileText className="w-3 h-3" />
                                     <span>{getPrescriptionButtonText()}</span>
+                                </button>
+                            )}
+
+                            {/* In your button section, add this new button for investigation reports */}
+                            {showInvestigationButton && (
+                                <button
+                                    className="flex items-center space-x-1 px-2.5 py-1.5 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-xs font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                                    onClick={() => onViewInvestigationReports(appointment)}
+                                    title="View Investigation Reports"
+                                >
+                                    <TestTube className="w-3 h-3" />
+                                    <span>View Reports ({appointment.investigation_count || 0})</span>
                                 </button>
                             )}
                         </div>

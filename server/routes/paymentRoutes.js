@@ -5,7 +5,9 @@ const {
     getAllPayments,
     getPaymentById,
     getPaymentByAppointment,
-    updatePayment,
+    // updatePayment,
+    getPaymentCountsByDoctor,
+    getAppointmentsByPaymentStatus,
 } = require('../controllers/paymentController');
 
 router.route('/')
@@ -13,10 +15,17 @@ router.route('/')
     .post(createPayment);
 
 router.route('/:id')
-    .get(getPaymentById)
-    .patch(updatePayment);
+    .get(getPaymentById);
+    // .patch(updatePayment);
 
 router.route('/appointment/:appointmentId')
     .get(getPaymentByAppointment);
+
+// Add these routes
+router.route('/doctor/:doctorId/counts')
+    .get(getPaymentCountsByDoctor);
+
+router.route('/doctor/:doctorId/appointments/:paymentStatus')
+    .get(getAppointmentsByPaymentStatus);
 
 module.exports = router;
