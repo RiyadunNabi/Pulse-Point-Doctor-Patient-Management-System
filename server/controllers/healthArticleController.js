@@ -3,36 +3,23 @@ const fs = require('fs');
 const path = require('path');
 
 /**
- * @route   POST /api/health-articles
- */
-const createArticle = async (req, res) => {
-    const { doctor_id, title, content, category } = req.body;
-    if (!doctor_id || !title || !content) {
-        return res.status(400).json({ error: 'doctor_id, title, and content are required.' });
-    }
-    const image_path = req.file ? req.file.path : null;
-
-    try {
-        const result = await pool.query(
-            `INSERT INTO health_article (doctor_id, title, content, image_path, category)
-             VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-            [doctor_id, title, content, image_path, category]
-        );
-        res.status(201).json(result.rows[0]);
-    } catch (err) {
-        console.error("Error creating article:", err);
-        res.status(500).json({ error: "Server error" });
-    }
-};
-
-/**
  * @route   GET /api/health-articles
  */
 const getAllArticles = async (req, res) => {
     const { category, doctorId } = req.query;
     try {
         let query = `
-            SELECT a.article_id, a.title, a.category, a.published_at, d.first_name, d.last_name
+            SELECT 
+                a.article_id, 
+                a.title, 
+                a.content,
+                a.image_path,
+                a.category, 
+                a.published_at,
+                a.updated_at,
+                a.doctor_id,
+                d.first_name, 
+                d.last_name
             FROM health_article a
             JOIN doctor d ON a.doctor_id = d.doctor_id
         `;
@@ -53,7 +40,18 @@ const getAllArticles = async (req, res) => {
         query += ' ORDER BY a.published_at DESC';
 
         const result = await pool.query(query, queryParams);
-        res.status(200).json(result.rows);
+        
+        // Ensure all articles have required fields
+        const articles = result.rows.map(article => ({
+            ...article,
+            content: article.content || '',
+            title: article.title || 'Untitled Article',
+            first_name: article.first_name || 'Unknown',
+            last_name: article.last_name || 'Doctor',
+            category: article.category || 'General'
+        }));
+        
+        res.status(200).json(articles);
     } catch (err) {
         console.error("Error fetching articles:", err);
         res.status(500).json({ error: "Server error" });
@@ -67,16 +65,54 @@ const getArticleById = async (req, res) => {
     const { id } = req.params;
     try {
         const result = await pool.query(
-            `SELECT a.*, d.first_name, d.last_name 
+            `SELECT 
+                a.*, 
+                d.first_name, 
+                d.last_name 
              FROM health_article a
              JOIN doctor d ON a.doctor_id = d.doctor_id
              WHERE a.article_id = $1`, [id]);
+             
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "Article not found." });
         }
-        res.status(200).json(result.rows[0]);
+        
+        // Ensure article has required fields
+        const article = {
+            ...result.rows[0],
+            content: result.rows[0].content || '',
+            title: result.rows[0].title || 'Untitled Article',
+            first_name: result.rows[0].first_name || 'Unknown',
+            last_name: result.rows[0].last_name || 'Doctor',
+            category: result.rows[0].category || 'General'
+        };
+        
+        res.status(200).json(article);
     } catch (err) {
         console.error("Error fetching article:", err);
+        res.status(500).json({ error: "Server error" });
+    }
+};
+
+/**
+ * @route   POST /api/health-articles
+ */
+const createArticle = async (req, res) => {
+    const { doctor_id, title, content, category } = req.body;
+    if (!doctor_id || !title || !content) {
+        return res.status(400).json({ error: 'doctor_id, title, and content are required.' });
+    }
+    const image_path = req.file ? req.file.path : null;
+
+    try {
+        const result = await pool.query(
+            `INSERT INTO health_article (doctor_id, title, content, image_path, category)
+             VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+            [doctor_id, title, content, image_path, category]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (err) {
+        console.error("Error creating article:", err);
         res.status(500).json({ error: "Server error" });
     }
 };

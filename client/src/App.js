@@ -12,6 +12,7 @@ import PatientAppointmentsPage from './components/PatientDashboard/PatientAppoin
 import DoctorDashboard from './components/DoctorDashboard/DoctorDashboard';
 import ManageAppointments from './components/DoctorDashboard/ManageAppointments/ManageAppointments';
 import MyPatientsPage from './components/DoctorDashboard/MyPatientsPage/MyPatientsPage';
+import HealthArticlesPage from './components/DoctorDashboard/HealthArticlesPage/HealthArticlesPage';
 
 import './utils/axiosConfig';
 
@@ -215,6 +216,17 @@ function App() {
             element={
               user && user.role === 'doctor' ? (
                 <MyPatientsPage user={user} onLogout={handleLogout} />
+              ) : (
+                <Navigate to="/auth" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/doctor-articles"
+            element={
+              user && user.role === 'doctor' ? (
+                <HealthArticlesPage user={user} onLogout={handleLogout} />
               ) : (
                 <Navigate to="/auth" replace />
               )
