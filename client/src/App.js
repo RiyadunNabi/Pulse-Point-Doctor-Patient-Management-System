@@ -11,6 +11,7 @@ import PatientAppointmentsPage from './components/PatientDashboard/PatientAppoin
 //doctor
 import DoctorDashboard from './components/DoctorDashboard/DoctorDashboard';
 import ManageAppointments from './components/DoctorDashboard/ManageAppointments/ManageAppointments';
+import MyPatientsPage from './components/DoctorDashboard/MyPatientsPage/MyPatientsPage';
 
 import './utils/axiosConfig';
 
@@ -203,6 +204,17 @@ function App() {
             element={
               user && user.role === 'doctor' ? (
                 <ManageAppointments doctorId={user.doctor_id} user={user} onLogout={handleLogout} />
+              ) : (
+                <Navigate to="/auth" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/doctor-patients"
+            element={
+              user && user.role === 'doctor' ? (
+                <MyPatientsPage user={user} onLogout={handleLogout} />
               ) : (
                 <Navigate to="/auth" replace />
               )

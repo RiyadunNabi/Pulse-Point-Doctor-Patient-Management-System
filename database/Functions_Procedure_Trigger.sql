@@ -654,4 +654,188 @@ BEGIN
   WHERE a.doctor_id = pid;
 END;
 $$ LANGUAGE plpgsql;
+-----------------------------------------------------------
+
+--STATISTICS--
+-- Function to get patients list for a specific doctor with appointment statistics
+-- Drop the existing function first
+DROP FUNCTION IF EXISTS get_doctor_patients_with_stats(integer,text,text,date,date,text,text,integer,integer);
+
+-- Create the corrected function
+CREATE OR REPLACE FUNCTION get_doctor_patients_with_stats(
+    p_doctor_id INTEGER,
+    p_search TEXT DEFAULT NULL,
+    p_gender TEXT DEFAULT NULL,
+    p_from_date DATE DEFAULT NULL,
+    p_to_date DATE DEFAULT NULL,
+    p_sort_by TEXT DEFAULT 'last_appointment',
+    p_sort_order TEXT DEFAULT 'desc',
+    p_page INTEGER DEFAULT 1,
+    p_limit INTEGER DEFAULT 12
+)
+RETURNS TABLE(
+    patient_id INTEGER,
+    first_name VARCHAR,
+    last_name VARCHAR,
+    gender VARCHAR,
+    date_of_birth DATE,
+    phone_no VARCHAR,
+    address TEXT,
+    email VARCHAR,
+    blood_group VARCHAR,
+    health_condition TEXT,
+    total_appointments BIGINT,
+    completed_appointments BIGINT,
+    cancelled_appointments BIGINT,
+    pending_appointments BIGINT,
+    last_appointment_date DATE,
+    last_appointment_time TIME,
+    last_appointment_status VARCHAR,
+    first_appointment_date DATE,
+    patient_created_at TIMESTAMP,
+    patient_updated_at TIMESTAMP,
+    age INTEGER,
+    total_records BIGINT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        p.patient_id,
+        p.first_name,
+        p.last_name,
+        p.gender,
+        p.date_of_birth,
+        p.phone_no,
+        p.address,
+        u.email,
+        p.blood_group,
+        p.health_condition,
+        COUNT(a.appointment_id) as total_appointments,
+        COUNT(a.appointment_id) FILTER (WHERE a.status = 'completed') as completed_appointments,
+        COUNT(a.appointment_id) FILTER (WHERE a.status = 'cancelled') as cancelled_appointments,
+        COUNT(a.appointment_id) FILTER (WHERE a.status = 'pending') as pending_appointments,
+        MAX(a.appointment_date) as last_appointment_date,
+        -- Fixed: Fully qualify column references in subqueries
+        (SELECT a2.appointment_time FROM appointment a2
+         WHERE a2.patient_id = p.patient_id AND a2.doctor_id = p_doctor_id 
+         ORDER BY a2.appointment_date DESC, a2.appointment_time DESC LIMIT 1) as last_appointment_time,
+        (SELECT a3.status FROM appointment a3
+         WHERE a3.patient_id = p.patient_id AND a3.doctor_id = p_doctor_id 
+         ORDER BY a3.appointment_date DESC, a3.appointment_time DESC LIMIT 1) as last_appointment_status,
+        MIN(a.appointment_date) as first_appointment_date,
+        p.created_at as patient_created_at,
+        p.updated_at as patient_updated_at,
+        CASE 
+            WHEN p.date_of_birth IS NOT NULL THEN 
+                EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.date_of_birth))::INTEGER
+            ELSE NULL
+        END as age,
+        COUNT(*) OVER() as total_records
+    FROM patient p
+    JOIN "user" u ON p.user_id = u.user_id
+    JOIN appointment a ON p.patient_id = a.patient_id
+    WHERE a.doctor_id = p_doctor_id
+    AND u.is_active = true
+    AND (
+        p_search IS NULL OR 
+        LOWER(p.first_name || ' ' || p.last_name) LIKE LOWER('%' || p_search || '%') OR
+        LOWER(p.first_name) LIKE LOWER('%' || p_search || '%') OR
+        LOWER(p.last_name) LIKE LOWER('%' || p_search || '%') OR
+        LOWER(u.email) LIKE LOWER('%' || p_search || '%') OR
+        LOWER(p.phone_no) LIKE LOWER('%' || p_search || '%')
+    )
+    AND (p_gender IS NULL OR p.gender = p_gender)
+    AND (p_from_date IS NULL OR MAX(a.appointment_date) >= p_from_date)
+    AND (p_to_date IS NULL OR MIN(a.appointment_date) <= p_to_date)
+    GROUP BY p.patient_id, p.first_name, p.last_name, p.gender, p.date_of_birth, 
+             p.phone_no, p.address, u.email, p.blood_group, p.health_condition,
+             p.created_at, p.updated_at
+    ORDER BY
+        CASE 
+            WHEN p_sort_by = 'last_appointment' AND p_sort_order = 'desc' THEN 
+                COALESCE(MAX(a.appointment_date), p.created_at::date)
+            WHEN p_sort_by = 'last_appointment' AND p_sort_order = 'asc' THEN 
+                COALESCE(MAX(a.appointment_date), p.created_at::date)
+        END DESC,
+        CASE 
+            WHEN p_sort_by = 'last_appointment' AND p_sort_order = 'asc' THEN 
+                COALESCE(MAX(a.appointment_date), p.created_at::date)
+        END ASC,
+        CASE 
+            WHEN p_sort_by = 'name' AND p_sort_order = 'asc' THEN p.first_name
+            WHEN p_sort_by = 'name' AND p_sort_order = 'desc' THEN p.first_name
+        END ASC,
+        CASE 
+            WHEN p_sort_by = 'name' AND p_sort_order = 'desc' THEN p.first_name
+        END DESC,
+        CASE 
+            WHEN p_sort_by = 'total_appointments' AND p_sort_order = 'asc' THEN COUNT(a.appointment_id)
+            WHEN p_sort_by = 'total_appointments' AND p_sort_order = 'desc' THEN COUNT(a.appointment_id)
+        END ASC,
+        CASE 
+            WHEN p_sort_by = 'total_appointments' AND p_sort_order = 'desc' THEN COUNT(a.appointment_id)
+        END DESC,
+        p.patient_id ASC
+    LIMIT p_limit OFFSET ((p_page - 1) * p_limit);
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- Function to get daily appointment counts for analytics (last 7 days)
+CREATE OR REPLACE FUNCTION get_doctor_daily_appointment_analytics(
+    p_doctor_id INTEGER,
+    p_days INTEGER DEFAULT 7
+)
+RETURNS TABLE(
+    appointment_date DATE,
+    appointment_count BIGINT
+) AS $$
+BEGIN
+    RETURN QUERY
+    WITH date_series AS (
+        SELECT generate_series(
+            CURRENT_DATE - INTERVAL '1 day' * (p_days - 1),
+            CURRENT_DATE,
+            '1 day'::interval
+        )::date AS series_date
+    )
+    SELECT 
+        ds.series_date as appointment_date,
+        COALESCE(COUNT(a.appointment_id), 0) as appointment_count
+    FROM date_series ds
+    LEFT JOIN appointment a ON a.appointment_date = ds.series_date 
+                            AND a.doctor_id = p_doctor_id
+    GROUP BY ds.series_date
+    ORDER BY ds.series_date;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to get monthly appointment counts for analytics (last 12 months)
+CREATE OR REPLACE FUNCTION get_doctor_monthly_appointment_analytics(
+    p_doctor_id INTEGER,
+    p_months INTEGER DEFAULT 12
+)
+RETURNS TABLE(
+    appointment_month DATE,
+    appointment_count BIGINT
+) AS $$
+BEGIN
+    RETURN QUERY
+    WITH month_series AS (
+        SELECT generate_series(
+            date_trunc('month', CURRENT_DATE) - INTERVAL '1 month' * (p_months - 1),
+            date_trunc('month', CURRENT_DATE),
+            '1 month'::interval
+        )::date AS series_month
+    )
+    SELECT 
+        ms.series_month as appointment_month,
+        COALESCE(COUNT(a.appointment_id), 0) as appointment_count
+    FROM month_series ms
+    LEFT JOIN appointment a ON date_trunc('month', a.appointment_date) = ms.series_month 
+                            AND a.doctor_id = p_doctor_id
+    GROUP BY ms.series_month
+    ORDER BY ms.series_month;
+END;
+$$ LANGUAGE plpgsql;
 

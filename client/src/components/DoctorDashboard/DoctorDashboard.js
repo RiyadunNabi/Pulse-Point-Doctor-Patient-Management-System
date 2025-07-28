@@ -67,6 +67,8 @@ function DoctorDashboard({ user, onLogout }) {
             navigate('/doctor-appointments');
         } else if (tab.id === 'dashboard') {
             navigate('/doctordashboard');
+        } else if (tab.id === 'patients') {
+            navigate('/doctor-patients');
         }
         // Add other tab navigations as needed
     };
@@ -277,13 +279,13 @@ function DoctorDashboard({ user, onLogout }) {
         );
     }
     if (showManageAppointments) {
-    return (
-      <ManageAppointments
-        doctorId={user.doctor_id}
-        onBack={handleBackFromManageAppointments}
-      />
-    );
-  }
+        return (
+            <ManageAppointments
+                doctorId={user.doctor_id}
+                onBack={handleBackFromManageAppointments}
+            />
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50">
@@ -311,6 +313,7 @@ function DoctorDashboard({ user, onLogout }) {
                             {navTabs.map((tab) => (
                                 <button
                                     key={tab.id}
+                                    onClick={() => handleTabClick(tab)}
                                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${tab.active
                                         ? 'bg-gradient-to-r from-sky-500 to-cyan-500 text-white shadow-md'
                                         : 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
