@@ -839,3 +839,41 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
+
+-----------------------------------------------------------
+-- Function to check if patient has pending appointment with specific doctor
+CREATE OR REPLACE FUNCTION check_existing_appointment(
+    p_patient_id INTEGER,
+    p_doctor_id INTEGER
+)
+RETURNS TABLE(
+    has_pending BOOLEAN,
+    appointment_id INTEGER,
+    appointment_date DATE,
+    appointment_time TIME,
+    reason TEXT,
+    created_at TIMESTAMP
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END as has_pending,
+        MAX(a.appointment_id) as appointment_id,
+        MAX(a.appointment_date) as appointment_date,
+        MAX(a.appointment_time) as appointment_time,
+        MAX(a.reason) as reason,
+        MAX(a.created_at) as created_at
+    FROM appointment a
+    WHERE a.patient_id = p_patient_id 
+    AND a.doctor_id = p_doctor_id 
+    AND a.status = 'pending'
+    GROUP BY a.patient_id, a.doctor_id;
+    
+    -- If no pending appointment found, return false with nulls
+    IF NOT FOUND THEN
+        RETURN QUERY
+        SELECT FALSE as has_pending, NULL::INTEGER, NULL::DATE, NULL::TIME, NULL::TEXT, NULL::TIMESTAMP;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
