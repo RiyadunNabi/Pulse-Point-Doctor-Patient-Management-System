@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import EditArticleModal from './EditArticleModal';
 import axios from 'axios';
+import ArticleImageDisplay from './ArticleImageDisplay';
 
 const ArticleCard = ({ article, isOwner, onArticleUpdated }) => {
     const [showEditModal, setShowEditModal] = useState(false);
@@ -147,19 +148,57 @@ const ArticleCard = ({ article, isOwner, onArticleUpdated }) => {
                     </div>
                 </div>
 
-                {/* Article Image */}
-                {safeArticle.image_path && (
-                    <div className="px-6 mt-4">
-                        <img 
-                            src={`${axios.defaults.baseURL}/${safeArticle.image_path}`}
-                            alt={safeArticle.title}
-                            className="w-full max-h-96 object-cover rounded-lg shadow-sm"
-                            onError={(e) => {
-                                e.target.style.display = 'none';
-                            }}
-                        />
-                    </div>
-                )}
+               {/* Article Image - Updated for correct path */}
+{safeArticle.image_path && (
+    <div className="px-6 mt-4">
+        <div className="relative group">
+            <img 
+                src={`http://localhost:5000/uploads/article_images/${safeArticle.image_path.replace(/^.*[\\/]/, '')}`}
+                alt={safeArticle.title}
+                className="w-full max-h-96 object-cover rounded-lg shadow-sm cursor-pointer transition-transform duration-300 hover:scale-[1.02]"
+                onError={(e) => {
+                    console.error('Image failed to load:', e.target.src);
+                    // Try alternative path if the first one fails
+                    if (!e.target.src.includes('/article_images/')) {
+                        e.target.src = `http://localhost:5000/uploads/${safeArticle.image_path}`;
+                    } else {
+                        e.target.style.display = 'none';
+                    }
+                }}
+                onClick={(e) => {
+                    // Open in modal for full view
+                    const modal = document.createElement('div');
+                    modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4';
+                    modal.innerHTML = `
+                        <div class="relative max-w-4xl max-h-full">
+                            <img src="${e.target.src}" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
+                            <button class="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-75 transition-all">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                    modal.onclick = (e) => {
+                        if (e.target === modal || e.target.tagName === 'BUTTON' || e.target.tagName === 'svg' || e.target.tagName === 'path') {
+                            document.body.removeChild(modal);
+                        }
+                    };
+                    document.body.appendChild(modal);
+                }}
+            />
+            
+            {/* Image overlay with info */}
+            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 rounded-lg flex items-end justify-end p-2 opacity-0 group-hover:opacity-100">
+                <span className="text-white text-xs bg-black bg-opacity-50 px-2 py-1 rounded">
+                    Click to enlarge
+                </span>
+            </div>
+        </div>
+    </div>
+)}
+
+
 
                 {/* Footer */}
                 <div className="p-6 pt-4 border-t border-slate-100 mt-4">

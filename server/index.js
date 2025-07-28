@@ -4,6 +4,7 @@ const pool = require("./db/connection");
 require('dotenv').config();
 const authenticateToken = require('./middleware/authMiddleware');
 
+const path = require('path');
 const app = express();
 const PORT = 5000;
 const setupSwagger = require('./swagger');
@@ -13,6 +14,10 @@ setupSwagger(app);
 app.use(cors());
 app.use(express.json());
 // app.use(express.json());
+
+// Serve static files (uploaded images/documents)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 // Routes
 const doctorRoutes = require("./routes/doctorRoutes");

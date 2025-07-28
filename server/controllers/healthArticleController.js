@@ -41,14 +41,16 @@ const getAllArticles = async (req, res) => {
 
         const result = await pool.query(query, queryParams);
         
-        // Ensure all articles have required fields
+        // Ensure all articles have required fields with fallbacks
         const articles = result.rows.map(article => ({
             ...article,
             content: article.content || '',
             title: article.title || 'Untitled Article',
             first_name: article.first_name || 'Unknown',
             last_name: article.last_name || 'Doctor',
-            category: article.category || 'General'
+            category: article.category || 'General',
+            // Clean up image path for frontend - return only filename
+            image_path: article.image_path ? path.basename(article.image_path) : null
         }));
         
         res.status(200).json(articles);
@@ -77,14 +79,14 @@ const getArticleById = async (req, res) => {
             return res.status(404).json({ error: "Article not found." });
         }
         
-        // Ensure article has required fields
         const article = {
             ...result.rows[0],
             content: result.rows[0].content || '',
             title: result.rows[0].title || 'Untitled Article',
             first_name: result.rows[0].first_name || 'Unknown',
             last_name: result.rows[0].last_name || 'Doctor',
-            category: result.rows[0].category || 'General'
+            category: result.rows[0].category || 'General',
+            image_path: result.rows[0].image_path ? path.basename(result.rows[0].image_path) : null
         };
         
         res.status(200).json(article);
@@ -102,7 +104,9 @@ const createArticle = async (req, res) => {
     if (!doctor_id || !title || !content) {
         return res.status(400).json({ error: 'doctor_id, title, and content are required.' });
     }
-    const image_path = req.file ? req.file.path : null;
+    
+    // Store only the filename, not the full path
+    const image_path = req.file ? req.file.filename : null;
 
     try {
         const result = await pool.query(
@@ -123,13 +127,15 @@ const createArticle = async (req, res) => {
 const updateArticle = async (req, res) => {
     const { id } = req.params;
     const { title, content, category } = req.body;
-    const new_image_path = req.file ? req.file.path : null;
+    const new_image_filename = req.file ? req.file.filename : null;
 
     try {
-        if (new_image_path) {
+        // If new image uploaded, delete old one
+        if (new_image_filename) {
             const oldArticle = await pool.query('SELECT image_path FROM health_article WHERE article_id = $1', [id]);
             if (oldArticle.rows.length > 0 && oldArticle.rows[0].image_path) {
-                fs.unlink(oldArticle.rows[0].image_path, (err) => {
+                const oldImagePath = path.join(__dirname, '..', 'uploads', 'article_images', oldArticle.rows[0].image_path);
+                fs.unlink(oldImagePath, (err) => {
                     if (err) console.error("Error deleting old article image:", err);
                 });
             }
@@ -141,7 +147,7 @@ const updateArticle = async (req, res) => {
                  category = COALESCE($3, category), image_path = COALESCE($4, image_path),
                  updated_at = CURRENT_TIMESTAMP
              WHERE article_id = $5 RETURNING *`,
-            [title, content, category, new_image_path, id]
+            [title, content, category, new_image_filename, id]
         );
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "Article not found" });
@@ -164,8 +170,9 @@ const deleteArticle = async (req, res) => {
             return res.status(404).json({ error: "Article not found" });
         }
         
-        const imagePath = result.rows[0].image_path;
-        if (imagePath) {
+        const imageFilename = result.rows[0].image_path;
+        if (imageFilename) {
+            const imagePath = path.join(__dirname, '..', 'uploads', 'article_images', imageFilename);
             fs.unlink(imagePath, (err) => {
                 if (err) console.error("Error deleting article image file:", err);
             });
