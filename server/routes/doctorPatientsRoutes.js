@@ -21,6 +21,6 @@ router.get('/doctor/:doctorId/monthly-analytics', getDoctorMonthlyAnalytics);
 
 // @route   GET /api/doctor-patients/patient/:patientId
 // @desc    Get detailed patient information
-router.get('/patient/:patientId', getPatientDetails);
+router.get('/patient/:patientId/doctor/:doctorId', getPatientDetails);
 
 module.exports = router;

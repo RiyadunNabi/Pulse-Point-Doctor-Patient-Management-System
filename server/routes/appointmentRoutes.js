@@ -13,6 +13,7 @@ const {
     // cancelAppointment
     deleteAppointment,
     getAppointmentStats,
+    checkExistingAppointment,
 } = require("../controllers/appointmentController");
 
 router.route("/").post(createAppointment);
@@ -39,5 +40,7 @@ router.get(
 router.get('/doctor/:doctorId/status/:status', getAppointmentsByDoctorAndStatus);
 
 router.route("/patient/:patientId").get(getAppointmentsByPatient);
+
+router.get('/check-existing/:patientId/:doctorId', checkExistingAppointment);
 
 module.exports = router;

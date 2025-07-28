@@ -316,6 +316,24 @@ const getAppointmentStats = async (req, res) => {
   }
 };
 
+// @desc Check if patient has existing pending appointment with doctor
+// @route GET /api/appointments/check-existing/:patientId/:doctorId
+const checkExistingAppointment = async (req, res) => {
+  const { patientId, doctorId } = req.params;
+  
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM check_existing_appointment($1, $2)',
+      [patientId, doctorId]
+    );
+    
+    res.status(200).json(rows[0]);
+  } catch (err) {
+    console.error('Error checking existing appointment:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 
 const deleteAppointment = async (req, res) => {
     const { id } = req.params;
@@ -347,4 +365,5 @@ module.exports = {
     updateAppointment,
     deleteAppointment,
     getAppointmentStats,
+    checkExistingAppointment,
 };

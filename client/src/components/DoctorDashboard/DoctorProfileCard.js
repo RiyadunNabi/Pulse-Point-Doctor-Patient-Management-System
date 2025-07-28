@@ -28,12 +28,6 @@ function DoctorProfileCard({ doctor, onDoctorUpdate }) {
     //     onDoctorUpdate(updatedDoctor);
     // };
 
-    // Coerce to a Number, defaulting null/invalid to 0
-    const raw = doctor.avg_rating;
-    const avgNumeric = raw != null && !isNaN(raw)
-        ? parseFloat(raw)
-        : 0;
-
     return (
         <>
             <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/50 p-8">
@@ -65,14 +59,6 @@ function DoctorProfileCard({ doctor, onDoctorUpdate }) {
                                 <h2 className="text-3xl font-bold text-slate-800">
                                     Dr. {doctor ? `${doctor.first_name} ${doctor.last_name || ''}`.trim() : 'Loading...'}
                                 </h2>
-                                {doctor?.avg_rating && (
-                                    <div className="flex items-center space-x-1 bg-yellow-50 px-2 py-1 rounded-lg">
-                                        <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                                        <span className="text-sm font-medium text-yellow-700">
-                                            {avgNumeric.toFixed(1)}
-                                        </span>
-                                    </div>
-                                )}
                             </div>
 
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4 text-sm">

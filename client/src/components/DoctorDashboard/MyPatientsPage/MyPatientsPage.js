@@ -184,7 +184,7 @@ const MyPatientsPage = ({ user, onLogout }) => {
                         </div>
                     </div>
                 </div>
-                
+
                 {/* Summary Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                     <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/50 shadow-sm">
@@ -382,6 +382,8 @@ const MyPatientsPage = ({ user, onLogout }) => {
             {showPatientModal && selectedPatient && (
                 <PatientDetailsModal
                     patient={selectedPatient}
+                    doctorId={user?.doctor_id}
+                    isOpen={showPatientModal}
                     onClose={() => {
                         setShowPatientModal(false);
                         setSelectedPatient(null);

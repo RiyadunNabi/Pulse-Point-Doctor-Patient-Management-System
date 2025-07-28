@@ -43,7 +43,7 @@ function UpcomingAppointmentsSection({ appointments, doctorId }) {
             ) : (
                 <div className="space-y-3">
                     {upcomingAppointments.map((appointment, index) => (
-                        <div key={appointment.id || index} className="border border-slate-200 rounded-lg p-4 hover:bg-slate-50 transition-colors">
+                        <div key={appointment.id} className="border border-slate-200 rounded-lg p-4 hover:bg-slate-50 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-3">
                                     <div className="w-10 h-10 bg-gradient-to-r from-sky-400 to-cyan-400 rounded-full flex items-center justify-center">
@@ -51,7 +51,7 @@ function UpcomingAppointmentsSection({ appointments, doctorId }) {
                                     </div>
                                     <div>
                                         <p className="font-medium text-slate-800">
-                                            {appointment.patient_name || 'Patient Name'}
+                                            {appointment.first_name} {appointment.last_name}
                                         </p>
                                         <div className="flex items-center space-x-4 text-sm text-slate-600">
                                             <div className="flex items-center space-x-1">

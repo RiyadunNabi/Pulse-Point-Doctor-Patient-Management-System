@@ -92,66 +92,70 @@ const getDoctorMonthlyAnalytics = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
-
 /**
- * @desc    Get detailed patient information by patient ID
- * @route   GET /api/doctor-patients/patient/:patientId
+ * @desc Get detailed patient information by patient ID for a specific doctor
+ * @route GET /api/doctor-patients/patient/:patientId/doctor/:doctorId
  */
 const getPatientDetails = async (req, res) => {
-    const { patientId } = req.params;
+  const { patientId, doctorId } = req.params;
 
-    try {
-        const patientQuery = `
-            SELECT 
-                p.*,
-                u.email,
-                u.username,
-                u.created_at as user_created_at,
-                CASE 
-                    WHEN p.date_of_birth IS NOT NULL THEN 
-                        EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.date_of_birth))::INTEGER
-                    ELSE NULL
-                END as age
-            FROM patient p
-            JOIN "user" u ON p.user_id = u.user_id
-            WHERE p.patient_id = $1
-        `;
+  try {
+    const patientQuery = `
+      SELECT 
+        p.*,
+        u.email,
+        u.username,
+        u.created_at as user_created_at,
+        CASE 
+          WHEN p.date_of_birth IS NOT NULL THEN 
+            EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.date_of_birth))::INTEGER
+          ELSE NULL 
+        END as age
+      FROM patient p
+      JOIN "user" u ON p.user_id = u.user_id
+      WHERE p.patient_id = $1
+      -- Ensure this patient has at least one appointment with this doctor
+      AND EXISTS (
+        SELECT 1 FROM appointment a 
+        WHERE a.patient_id = $1 
+        AND a.doctor_id = $2
+      )
+    `;
 
-        const appointmentHistoryQuery = `
-            SELECT 
-                a.appointment_id,
-                a.appointment_date,
-                a.appointment_time,
-                a.status,
-                a.reason,
-                a.created_at,
-                d.first_name as doctor_first_name,
-                d.last_name as doctor_last_name,
-                dep.department_name
-            FROM appointment a
-            JOIN doctor d ON a.doctor_id = d.doctor_id
-            JOIN department dep ON d.department_id = dep.department_id
-            WHERE a.patient_id = $1
-            ORDER BY a.appointment_date DESC, a.appointment_time DESC
-        `;
+    // FIXED: Only show appointments between this specific doctor and patient
+    const appointmentHistoryQuery = `
+      SELECT 
+        a.appointment_id,
+        a.appointment_date,
+        a.appointment_time,
+        a.status,
+        a.reason,
+        a.created_at
+      FROM appointment a
+      WHERE a.patient_id = $1 
+      AND a.doctor_id = $2
+      ORDER BY a.appointment_date DESC, a.appointment_time DESC
+    `;
 
-        const [patientResult, appointmentHistoryResult] = await Promise.all([
-            pool.query(patientQuery, [patientId]),
-            pool.query(appointmentHistoryQuery, [patientId])
-        ]);
+    const [patientResult, appointmentHistoryResult] = await Promise.all([
+      pool.query(patientQuery, [patientId, doctorId]),
+      pool.query(appointmentHistoryQuery, [patientId, doctorId])
+    ]);
 
-        if (patientResult.rows.length === 0) {
-            return res.status(404).json({ error: 'Patient not found' });
-        }
-
-        res.status(200).json({
-            patient: patientResult.rows[0],
-            appointmentHistory: appointmentHistoryResult.rows
-        });
-    } catch (err) {
-        console.error('Error fetching patient details:', err);
-        res.status(500).json({ error: 'Server error' });
+    if (patientResult.rows.length === 0) {
+      return res.status(404).json({ 
+        error: 'Patient not found or no appointments with this doctor' 
+      });
     }
+
+    res.status(200).json({
+      patient: patientResult.rows[0],
+      appointmentHistory: appointmentHistoryResult.rows
+    });
+  } catch (err) {
+    console.error('Error fetching patient details:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
 };
 
 module.exports = {
