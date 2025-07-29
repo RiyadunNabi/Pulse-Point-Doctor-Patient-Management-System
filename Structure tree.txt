@@ -16,7 +16,8 @@ Pulse-Point-Doctor-Patient-Management-System/
     ├── reportWebVitals.js
     ├── setupTests.js
     ├── utils/
-    │   └── axiosConfig.js
+    │   ├── axiosConfig.js
+    │   └── imageHelpers.js
     └── components/
         ├── AuthPage.js
         ├── DoctorsList.js
@@ -24,8 +25,10 @@ Pulse-Point-Doctor-Patient-Management-System/
         ├── LoginForm.js
         ├── ProtectedRoute.js
         ├── shared/
+        │   ├── ErrorBoundary.js
         │   ├── InputField.js
-        │   └── Modal.js
+        │   ├── Modal.js
+        │   └── NotificationDropdown.js
         ├── PatientDashboard/
         │   ├── GraphSection.js
         │   ├── GraphTabs.js
@@ -67,6 +70,10 @@ Pulse-Point-Doctor-Patient-Management-System/
         │   │   ├── useDoctors.js
         │   │   ├── useHealthLogs.js
         │   │   └── usePatientData.js
+        │   ├── HealthArticlesView/
+        │   │   ├── index.js
+        │   │   ├── PatientArticleCard.js
+        │   │   └── PatientArticlesPage.js
         │   ├── EditProfileModal/
         │   │   ├── EditProfileModal.js
         │   │   ├── ProfileForm.js
@@ -105,6 +112,15 @@ Pulse-Point-Doctor-Patient-Management-System/
         │   ├── UpcomingAppointmentsSection.js
         │   ├── utils/
         │   │   └── dateUtils.js
+        │   ├── shared/
+        │   │   └── DoctorNavigation.js
+        │   ├── MyPatientsPage/
+        │   │   ├── MyPatientsPage.js
+        │   │   └── components/
+        │   │       ├── AnalyticsCharts.js
+        │   │       ├── PatientCard.js
+        │   │       ├── PatientDetailsModal.js
+        │   │       └── PatientFilters.js
         │   ├── ManageAppointments/
         │   │   ├── AppointmentCard.js
         │   │   ├── AppointmentFilters.js
@@ -131,15 +147,30 @@ Pulse-Point-Doctor-Patient-Management-System/
         │   │   │   └── PatientInfo.js
         │   │   └── InvestigationReportModal/
         │   │       └── InvestigationReportModal.js
+        │   ├── HealthArticlesPage/
+        │   │   ├── ArticleCard.js
+        │   │   ├── ArticleCreationSection.js
+        │   │   ├── ArticleImageDisplay.js
+        │   │   ├── ArticlesList.js
+        │   │   ├── EditArticleModal.js
+        │   │   ├── HealthArticlesPage.js
+        │   │   ├── MyArticlesView.js
+        │   │   └── utils/
+        │   │       └── articleHelpers.js
         │   └── EditDoctorProfileModal/
         │       ├── DoctorProfileForm.js
         │       ├── DoctorProfilePhotoSection.js
         │       └── EditDoctorProfileModal.js
         └── Booking/
             ├── BookingSuccessModal.js
-            ├── HealthDataSelector.js
-            └── PatientBookingModal.js
-
+            ├── ExistingAppointmentModal.js
+            ├── oldHealthDataSelector.js
+            ├── PatientBookingModal.js
+            └── components/
+                ├── BookingSummary.js
+                ├── CalendarView.js
+                ├── HealthDataSection.js
+                └── ScrollableSlotsList.js
 ├─ database
 │  └─ Main_Schema_final.sq
 └─ server

@@ -33,6 +33,7 @@ const DepartmentsPage = ({ user, onLogout }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50">
       <DashboardNavigation
+        user={user}
         activeTab="departments"
         onTabClick={(tab) => {
           if (tab === 'dashboard') navigate('/dashboard');

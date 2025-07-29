@@ -1,8 +1,10 @@
+// client/src/components/DoctorDashboard/Navigation/DoctorNavigation.js
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Bell, LogOut, Stethoscope } from 'lucide-react';
+import NotificationDropdown from '../../shared/NotificationDropdown';
 
-// PulsePoint Logo Component
+// PulsePoint Logo Component (keeping your existing one)
 const PulsePointLogo = ({ className = "w-8 h-8" }) => (
     <div className={`${className} flex items-center justify-center`}>
         <svg viewBox="0 0 100 100" className="w-full h-full">
@@ -26,7 +28,7 @@ const PulsePointLogo = ({ className = "w-8 h-8" }) => (
     </div>
 );
 
-const DoctorNavigation = ({ user, onLogout, notifications = 5 }) => {
+const DoctorNavigation = ({ user, onLogout }) => {
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -84,14 +86,8 @@ const DoctorNavigation = ({ user, onLogout, notifications = 5 }) => {
 
                     {/* Right Side - Notifications, Profile, Logout */}
                     <div className="flex items-center space-x-4">
-                        <button className="relative p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
-                            <Bell className="w-5 h-5" />
-                            {notifications > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                                    {notifications}
-                                </span>
-                            )}
-                        </button>
+                        {/* Replace the old notification bell with NotificationDropdown */}
+                        <NotificationDropdown user={user} />
 
                         <div className="w-8 h-8 bg-gradient-to-r from-sky-400 to-cyan-400 rounded-full flex items-center justify-center">
                             <Stethoscope className="w-5 h-5 text-white" />

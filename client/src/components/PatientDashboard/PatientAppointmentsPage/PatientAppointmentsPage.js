@@ -67,6 +67,7 @@ const PatientAppointmentsPage = ({ user, onLogout }) => {
             </div>
 
             <DashboardNavigation
+                user={user}
                 activeTab="appointments"
                 onTabClick={() => {}}
                 notifications={notifications}

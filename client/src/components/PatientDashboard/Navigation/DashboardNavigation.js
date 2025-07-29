@@ -5,15 +5,20 @@ import { Bell, LogOut, User } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import PulsePointLogo from './PulsePointLogo';
 import { NAV_TABS } from '../utils/constants';
+import NotificationDropdown from '../../shared/NotificationDropdown';
 
-const DashboardNavigation = ({ 
-    activeTab, 
-    onTabClick, 
-    notifications, 
-    onLogout 
+const DashboardNavigation = ({
+    activeTab,
+    onTabClick,
+    notifications,
+    onLogout,
+    user
 }) => {
     const navigate = useNavigate();
     const location = useLocation();
+
+    // Debug: Log user prop
+  console.log('DashboardNavigation user prop:', user);
 
     const handleTabClick = (tab) => {
         if (tab.route) {
@@ -32,7 +37,6 @@ const DashboardNavigation = ({
         return activeTab;
     };
 
-    // Rest of the component remains the same...
     return (
         <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -52,18 +56,17 @@ const DashboardNavigation = ({
                             <button
                                 key={tab.id}
                                 onClick={() => handleTabClick(tab)}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                                    getActiveTab() === tab.id
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${getActiveTab() === tab.id
                                         ? 'bg-gradient-to-r from-sky-500 to-cyan-500 text-white shadow-md'
                                         : 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
-                                }`}
+                                    }`}
                             >
                                 {tab.label}
                             </button>
                         ))}
                     </div>
 
-                    {/* Right Side - Notifications, Profile, Logout */}
+                    {/* Right Side - Notifications, Profile, Logout
                     <div className="flex items-center space-x-4">
                         <button className="relative p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
                             <Bell className="w-5 h-5" />
@@ -76,7 +79,10 @@ const DashboardNavigation = ({
 
                         <div className="w-8 h-8 bg-gradient-to-r from-sky-400 to-cyan-400 rounded-full flex items-center justify-center">
                             <User className="w-5 h-5 text-white" />
-                        </div>
+                        </div> */}
+                    {/* Right Side - Notifications, Profile, Logout */}
+                    <div className="flex items-center space-x-2">
+                        <NotificationDropdown user={user} />
 
                         <button
                             onClick={onLogout}

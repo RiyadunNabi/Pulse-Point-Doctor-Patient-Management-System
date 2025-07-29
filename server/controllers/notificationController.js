@@ -65,6 +65,28 @@ const markNotificationAsRead = async (req, res) => {
 };
 
 /**
+ * @desc    Get unread count for a specific user
+ * @route   GET /api/notifications/:userType/:id/unread-count
+ */
+const getUnreadCount = async (req, res) => {
+  const { userType, id } = req.params;
+  const column = userType === 'doctor' ? 'doctor_id' : 'patient_id';
+  try {
+    const { rows } = await pool.query(
+      `SELECT COUNT(*)::int AS count
+       FROM notifications
+       WHERE ${column} = $1
+         AND is_read = FALSE`,
+      [id]
+    );
+    res.json({ count: rows[0].count });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch unread count' });
+  }
+};
+
+/**
  * @desc    Delete a single notification
  * @route   DELETE /api/notifications/:id
  */
@@ -86,5 +108,6 @@ module.exports = {
     createNotification,
     getNotifications,
     markNotificationAsRead,
+    getUnreadCount,
     deleteNotification,
 };

@@ -116,6 +116,7 @@ function PatientDashboard({ user, onLogout }) {
                 onTabClick={handleTabClick}
                 notifications={notifications}
                 onLogout={onLogout}
+                user={user}
             />
 
             {/* Main Content */}

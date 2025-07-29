@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 import { Bell, LogOut, User, Stethoscope } from 'lucide-react';
+import DoctorNavigation from './shared/DoctorNavigation';
 import DoctorProfileCard from './DoctorProfileCard';
 import AppointmentStatsSection from './AppointmentStatsSection';
 import RevenueSection from './RevenueSection';
@@ -294,62 +295,9 @@ function DoctorDashboard({ user, onLogout }) {
                 <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-r from-sky-200/20 to-cyan-200/20 rounded-full blur-3xl"></div>
                 <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-blue-200/20 to-sky-200/20 rounded-full blur-3xl"></div>
             </div>
+            
+            <DoctorNavigation user={user} onLogout={onLogout} />
 
-            {/* Top Navigation Bar */}
-            <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        {/* Logo and Brand */}
-                        <div className="flex items-center space-x-3">
-                            <PulsePointLogo className="w-10 h-10" />
-                            <div>
-                                <h1 className="text-xl font-bold text-slate-800">Pulse Point</h1>
-                                <p className="text-xs text-slate-500">Doctor Portal</p>
-                            </div>
-                        </div>
-
-                        {/* Navigation Tabs */}
-                        <div className="hidden md:flex items-center space-x-1">
-                            {navTabs.map((tab) => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => handleTabClick(tab)}
-                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${tab.active
-                                        ? 'bg-gradient-to-r from-sky-500 to-cyan-500 text-white shadow-md'
-                                        : 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
-                                        }`}
-                                >
-                                    {tab.label}
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Right Side - Notifications, Profile, Logout */}
-                        <div className="flex items-center space-x-4">
-                            <button className="relative p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
-                                <Bell className="w-5 h-5" />
-                                {notifications > 0 && (
-                                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                                        {notifications}
-                                    </span>
-                                )}
-                            </button>
-
-                            <div className="w-8 h-8 bg-gradient-to-r from-sky-400 to-cyan-400 rounded-full flex items-center justify-center">
-                                <Stethoscope className="w-5 h-5 text-white" />
-                            </div>
-
-                            <button
-                                onClick={onLogout}
-                                className="flex items-center space-x-2 px-3 py-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            >
-                                <LogOut className="w-4 h-4" />
-                                <span className="text-sm font-medium">Logout</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </nav>
 
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
