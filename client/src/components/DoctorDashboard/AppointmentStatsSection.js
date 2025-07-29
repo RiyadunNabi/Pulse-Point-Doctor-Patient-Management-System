@@ -79,23 +79,24 @@ function AppointmentStatsSection({ appointments, doctorId, layout = "vertical", 
             color: 'text-emerald-600',
             bgColor: 'bg-emerald-50',
             borderColor: 'border-emerald-200'
-        },
-        {
-            title: 'Total Patients',
-            value: stats.totalPatients,
-            icon: Users,
-            color: 'text-indigo-600',
-            bgColor: 'bg-indigo-50',
-            borderColor: 'border-indigo-200'
-        },
-        {
-            title: 'Needs Attention',
-            value: stats.pending + Math.max(0, stats.today - stats.confirmed),
-            icon: AlertCircle,
-            color: 'text-red-600',
-            bgColor: 'bg-red-50',
-            borderColor: 'border-red-200'
         }
+        ,
+        // {
+        //     title: 'Total Patients',
+        //     value: stats.totalPatients,
+        //     icon: Users,
+        //     color: 'text-indigo-600',
+        //     bgColor: 'bg-indigo-50',
+        //     borderColor: 'border-indigo-200'
+        // },
+        // {
+        //     title: 'Needs Attention',
+        //     value: stats.pending + Math.max(0, stats.today - stats.confirmed),
+        //     icon: AlertCircle,
+        //     color: 'text-red-600',
+        //     bgColor: 'bg-red-50',
+        //     borderColor: 'border-red-200'
+        // }
     ];
 
     return (

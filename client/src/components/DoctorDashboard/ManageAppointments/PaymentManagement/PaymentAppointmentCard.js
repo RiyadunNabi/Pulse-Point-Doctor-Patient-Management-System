@@ -41,21 +41,11 @@ const PaymentAppointmentCard = ({ appointment, paymentInfo }) => {
                 icon: <CheckCircle className="w-3 h-3" />,
                 bgGradient: 'from-green-50 to-emerald-50 border-green-200'
             },
-            // pending: { 
-            //     color: 'bg-amber-50 text-amber-700 border-amber-200', 
-            //     label: 'Pending', 
-            //     icon: <AlertCircle className="w-3 h-3" />,
-            //     bgGradient: 'from-amber-50 to-yellow-50 border-amber-200'
-            // },
-            // failed: { 
-            //     color: 'bg-red-50 text-red-700 border-red-200', 
-            //     label: 'Failed', 
-            //     icon: <XCircle className="w-3 h-3" />,
-            //     bgGradient: 'from-red-50 to-rose-50 border-red-200'
-            // },
+
             unpaid: { 
                 color: 'bg-slate-50 text-slate-700 border-slate-200', 
-                label: 'Unpaid', 
+                // label: 'Unpaid',
+                label: '-',  
                 icon: <XCircle className="w-3 h-3" />,
                 bgGradient: 'from-slate-50 to-gray-50 border-slate-200'
             }

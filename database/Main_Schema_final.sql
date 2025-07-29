@@ -101,21 +101,6 @@ CREATE TABLE doctor_schedule (
     )
 );
 
--- APPOINTMENT
--- CREATE TABLE appointment (
---     appointment_id SERIAL PRIMARY KEY,
---     patient_id INTEGER REFERENCES patient(patient_id),
---     doctor_id INTEGER REFERENCES doctor(doctor_id),
---     schedule_id INTEGER REFERENCES schedule(schedule_id),
---     appointment_date TIMESTAMP,
---     appointment_type VARCHAR(10) CHECK (appointment_type IN ('in-person', 'online')),
---     reason TEXT,
---     doctor_notes TEXT,
---     status VARCHAR(20),
---     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
---     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
--- );
-
 CREATE TABLE appointment (
     appointment_id SERIAL PRIMARY KEY,
     doctor_id INTEGER REFERENCES doctor(doctor_id),

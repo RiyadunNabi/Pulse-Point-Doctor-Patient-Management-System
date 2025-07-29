@@ -8,6 +8,8 @@ const {
     // updatePayment,
     getPaymentCountsByDoctor,
     getAppointmentsByPaymentStatus,
+    getRevenueStats,
+    getRevenueChart,
 } = require('../controllers/paymentController');
 
 router.route('/')
@@ -27,5 +29,11 @@ router.route('/doctor/:doctorId/counts')
 
 router.route('/doctor/:doctorId/appointments/:paymentStatus')
     .get(getAppointmentsByPaymentStatus);
+
+router.route('/doctor/:doctorId/revenue-stats')
+    .get(getRevenueStats);
+
+router.route('/doctor/:doctorId/revenue-chart')
+    .get(getRevenueChart);
 
 module.exports = router;

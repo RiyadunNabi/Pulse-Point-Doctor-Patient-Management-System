@@ -1,7 +1,7 @@
 // client/src/components/DoctorDashboard/Navigation/DoctorNavigation.js
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Bell, LogOut, Stethoscope } from 'lucide-react';
+import { Bell, LogOut, Stethoscope, Currency } from 'lucide-react';
 import NotificationDropdown from '../../shared/NotificationDropdown';
 
 // PulsePoint Logo Component (keeping your existing one)
@@ -37,7 +37,8 @@ const DoctorNavigation = ({ user, onLogout }) => {
         { id: 'dashboard', label: 'Dashboard', path: '/doctordashboard' },
         { id: 'appointments', label: 'Appointments', path: '/doctor-appointments' },
         { id: 'patients', label: 'My Patients', path: '/doctor-patients' },
-        { id: 'schedule', label: 'Schedule', path: '/doctor-schedule' },
+        { id: 'revenue', label: 'Revenue', path: '/doctor-revenue', icon: Currency },    
+        // { id: 'schedule', label: 'Schedule', path: '/doctor-schedule' },
         { id: 'articles', label: 'Health Articles', path: '/doctor-articles' },
     ];
 

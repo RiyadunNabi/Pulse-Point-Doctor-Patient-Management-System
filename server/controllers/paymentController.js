@@ -315,6 +315,107 @@ const getPaymentByAppointment = async (req, res) => {
   }
 };
 
+
+/**
+ * @desc Get revenue chart data for a doctor using PostgreSQL function
+ * @route GET /api/payments/doctor/:doctorId/revenue-chart
+ */
+const getRevenueChart = async (req, res) => {
+  const { doctorId } = req.params;
+  const { range, startDate, endDate } = req.query;
+
+  // Begin transaction
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    console.log('Fetching revenue chart for doctor:', doctorId, 'with range:', range);
+
+    const result = await client.query(
+      'SELECT * FROM get_doctor_revenue_chart($1, $2, $3, $4)',
+      [doctorId, range || 'month', startDate || null, endDate || null]
+    );
+
+    console.log('Revenue chart query result:', result.rows.length, 'rows');
+
+    // Process the results to match your frontend expectations
+    const chartData = {
+      labels: result.rows.map(row => row.period),
+      values: result.rows.map(row => parseFloat(row.revenue || 0)),
+      total: result.rows.length > 0 ? parseFloat(result.rows[0].total_revenue || 0) : 0
+    };
+
+    await client.query('COMMIT');
+    
+    res.status(200).json(chartData);
+
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error("Get revenue chart error:", err);
+    
+    // Send more detailed error information
+    res.status(500).json({ 
+      error: 'Server error while generating revenue chart',
+      details: err.message,
+      code: err.code
+    });
+  } finally {
+    client.release();
+  }
+};
+
+/**
+ * @desc Get revenue statistics for a doctor using PostgreSQL function
+ * @route GET /api/payments/doctor/:doctorId/revenue-stats
+ */
+const getRevenueStats = async (req, res) => {
+  const { doctorId } = req.params;
+  const { range, startDate, endDate } = req.query;
+
+  // Begin transaction
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+
+    console.log('Fetching revenue stats for doctor:', doctorId, 'with range:', range);
+
+    const result = await client.query(
+      'SELECT * FROM get_doctor_revenue_stats($1, $2, $3, $4)',
+      [doctorId, range || 'month', startDate || null, endDate || null]
+    );
+
+    await client.query('COMMIT');
+    
+    // Ensure we return valid numbers
+    const stats = result.rows[0] || {};
+    const cleanedStats = {
+      today: parseFloat(stats.today || 0),
+      this_week: parseFloat(stats.this_week || 0),
+      this_month: parseFloat(stats.this_month || 0),
+      this_year: parseFloat(stats.this_year || 0),
+      today_change: parseFloat(stats.today_change || 0),
+      week_change: parseFloat(stats.week_change || 0),
+      month_change: parseFloat(stats.month_change || 0),
+      year_change: parseFloat(stats.year_change || 0)
+    };
+
+    res.status(200).json(cleanedStats);
+
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error("Get revenue stats error:", err);
+    res.status(500).json({ 
+      error: 'Server error while fetching revenue statistics',
+      details: err.message,
+      code: err.code
+    });
+  } finally {
+    client.release();
+  }
+};
+
 module.exports = {
   createPayment,
   getAllPayments,
@@ -322,4 +423,6 @@ module.exports = {
   getPaymentByAppointment,
   getPaymentCountsByDoctor,
   getAppointmentsByPaymentStatus,
+  getRevenueStats,
+  getRevenueChart,
 };

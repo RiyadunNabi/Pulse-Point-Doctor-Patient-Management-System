@@ -6,7 +6,7 @@ Pulse-Point-Doctor-Patient-Management-System/
 │  ├─ package.json
 │  ├─ postcss.config.js
 │  ├─ public
-└── src/
+└── └── src/
     ├── App.css
     ├── App.js
     ├── App.test.js
@@ -114,6 +114,15 @@ Pulse-Point-Doctor-Patient-Management-System/
         │   │   └── dateUtils.js
         │   ├── shared/
         │   │   └── DoctorNavigation.js
+        │   ├── RevenuePage/
+        │   │   ├── DoctorRevenuePage.js
+        │   │   ├── hooks/
+        │   │   │   └── useRevenueData.js
+        │   │   └── components/
+        │   │       ├── DateRangeFilter.js
+        │   │       ├── RevenueBreakdown.js
+        │   │       ├── RevenueChart.js
+        │   │       └── RevenueStatsCards.js
         │   ├── MyPatientsPage/
         │   │   ├── MyPatientsPage.js
         │   │   └── components/
