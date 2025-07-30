@@ -10,7 +10,6 @@ const createPrescription = async (req, res) => {
     }
 
     const client = await pool.connect();
-
     try {
         // Check if a prescription for this appointment already exists before doing anything else.
         const existingPrescription = await client.query('SELECT 1 FROM prescription WHERE appointment_id = $1', [appointment_id]);
@@ -115,8 +114,10 @@ const getPrescriptionByAppointmentId = async (req, res) => {
 const updatePrescription = async (req, res) => {
     const { id } = req.params;
     const { diagnosis, instructions, other_drugs } = req.body;
+    const client = await pool.connect();
     try {
-        const result = await pool.query(
+        await client.query('BEGIN');
+        const result = await client.query(
             `UPDATE prescription SET 
              diagnosis = COALESCE($1, diagnosis), 
              instructions = COALESCE($2, instructions),
@@ -125,12 +126,16 @@ const updatePrescription = async (req, res) => {
             [diagnosis, instructions, other_drugs, id]
         );
         if (result.rows.length === 0) {
+            await client.query('COMMIT');
             return res.status(404).json({ error: "Prescription not found." });
         }
         res.status(200).json(result.rows[0]);
     } catch (err) {
+        await client.query('COMMIT');
         console.error('Error updating prescription:', err);
         res.status(500).json({ error: 'Server error' });
+    } finally {
+        client.release();
     }
 };
 

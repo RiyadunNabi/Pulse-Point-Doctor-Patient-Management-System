@@ -28,18 +28,23 @@ const createMedicalDocument = async (req, res) => {
     if (!patient_id) {
         return res.status(400).json({ error: 'patient_id is required.' });
     }
-
+    const client = await pool.connect();
     try {
-        const result = await pool.query(
+        await client.query('BEGIN');
+        const result = await client.query(
             `INSERT INTO medical_documents (patient_id, file_name, file_path, description, last_checkup_date)
              VALUES ($1, $2, $3, $4, $5) RETURNING *`,
             [patient_id, originalname, filepath, description, last_checkup_date]
         );
         console.log('Database insert successful:', result.rows[0]);
+        await client.query('COMMIT');
         res.status(201).json(result.rows[0]);
     } catch (err) {
+        await client.query('ROLLBACK');
         console.error("Error creating medical document:", err);
         res.status(500).json({ error: "Failed to create medical document" });
+    }  finally {
+        client.release();
     }
 };
 
@@ -66,8 +71,10 @@ const getDocumentsByPatient = async (req, res) => {
 const updateMedicalDocument = async (req, res) => {
     const { id } = req.params;
     const { description, last_checkup_date } = req.body;
+    const client = await pool.connect();
     try {
-        const result = await pool.query(
+        await client.query('BEGIN');
+        const result = await client.query(
             `UPDATE medical_documents
              SET description = COALESCE($1, description),
                  last_checkup_date = COALESCE($2, last_checkup_date),
@@ -76,12 +83,17 @@ const updateMedicalDocument = async (req, res) => {
             [description, last_checkup_date, id]
         );
         if (result.rows.length === 0) {
+            await client.query('COMMIT');
             return res.status(404).json({ error: "Document not found" });
         }
+        await client.query('COMMIT');
         res.status(200).json(result.rows[0]);
     } catch (err) {
+        await client.query('ROLLBACK');
         console.error("Error updating medical document:", err);
         res.status(500).json({ error: "Failed to update medical document" });
+    } finally {
+        client.release();
     }
 };
 
@@ -113,9 +125,12 @@ const downloadMedicalDocument = async (req, res) => {
  */
 const deleteMedicalDocument = async (req, res) => {
     const { id } = req.params;
+    const client = await pool.connect();
     try {
-        const result = await pool.query('DELETE FROM medical_documents WHERE document_id = $1 RETURNING file_path', [id]);
+        await client.query('BEGIN');
+        const result = await client.query('DELETE FROM medical_documents WHERE document_id = $1 RETURNING file_path', [id]);
         if (result.rows.length === 0) {
+            await client.query('COMMIT');
             return res.status(404).json({ error: "Document not found" });
         }
 
@@ -125,11 +140,14 @@ const deleteMedicalDocument = async (req, res) => {
                 if (err) console.error("Error deleting document file:", err);
             });
         }
-
+        await client.query('COMMIT');
         res.status(204).send();
     } catch (err) {
+        await client.query('ROLLBACK');
         console.error("Error deleting medical document:", err);
         res.status(500).json({ error: "Failed to delete medical document" });
+    } finally {
+        client.release();
     }
 };
 

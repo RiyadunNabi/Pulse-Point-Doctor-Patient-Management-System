@@ -77,9 +77,9 @@ app.use('/api/doctor-patients', require('./routes/doctorPatientsRoutes'));
 app.get("/", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
-    res.send("✅ Connected to DB. Server time: " + result.rows[0].now);
+    res.send("Connected to DB. Server time: " + result.rows[0].now);
   } catch (err) {
-    console.error("❌ DB connection failed:", err);
+    console.error("DB connection failed:", err);
     res.status(500).send("DB connection failed");
   }
 });

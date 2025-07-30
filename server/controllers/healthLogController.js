@@ -8,16 +8,22 @@ const createHealthLog = async (req, res) => {
     if (!patient_id) {
         return res.status(400).json({ error: 'patient_id is a required field.' });
     }
+    const client = await pool.connect();
     try {
-        const result = await pool.query(
+        await client.query('BEGIN');
+        const result = await client.query(
             `INSERT INTO health_logs (patient_id, weight, systolic, diastolic, heart_rate, blood_sugar, sleep_hours, notes)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
             [patient_id, weight, systolic, diastolic, heart_rate, blood_sugar, sleep_hours, notes]
         );
+        await client.query('COMMIT');
         res.status(201).json(result.rows[0]);
     } catch (err) {
+        await client.query('ROLLBACK');
         console.error("Error creating health log:", err);
         res.status(500).json({ error: "Failed to create health log" });
+    } finally {
+        client.release();
     }
 };
 
@@ -55,8 +61,10 @@ const getHealthLogsByPatient = async (req, res) => {
 const updateHealthLog = async (req, res) => {
     const { id } = req.params;
     const { weight, systolic, diastolic, heart_rate, blood_sugar, sleep_hours, notes } = req.body;
+    const client = await pool.connect();
     try {
-        const result = await pool.query(
+        await client.query('BEGIN');
+        const result = await client.query(
             `UPDATE health_logs SET
              weight = COALESCE($1, weight), systolic = COALESCE($2, systolic),
              diastolic = COALESCE($3, diastolic), heart_rate = COALESCE($4, heart_rate),
@@ -66,12 +74,17 @@ const updateHealthLog = async (req, res) => {
             [weight, systolic, diastolic, heart_rate, blood_sugar, sleep_hours, notes, id]
         );
         if (result.rows.length === 0) {
+            await client.query('COMMIT');
             return res.status(404).json({ error: "Health log not found." });
         }
+        await client.query('COMMIT');
         res.status(200).json(result.rows[0]);
     } catch (err) {
+        await client.query('ROLLBACK');
         console.error("Error updating health log:", err);
         res.status(500).json({ error: "Server error" });
+    } finally {
+        client.release();
     }
 };
 
@@ -80,15 +93,22 @@ const updateHealthLog = async (req, res) => {
  */
 const deleteHealthLog = async (req, res) => {
     const { id } = req.params;
+    const client = await pool.connect();
     try {
-        const result = await pool.query('DELETE FROM health_logs WHERE log_id = $1 RETURNING *', [id]);
+        await client.query('BEGIN');
+        const result = await client.query('DELETE FROM health_logs WHERE log_id = $1 RETURNING *', [id]);
         if (result.rowCount === 0) {
+            await client.query('COMMIT');
             return res.status(404).json({ error: "Health log not found." });
         }
+        await client.query('COMMIT');
         res.status(204).send();
     } catch (err) {
+        await client.query('ROLLBACK');
         console.error("Error deleting health log:", err);
         res.status(500).json({ error: "Server error" });
+    } finally {
+        client.release();
     }
 };
 

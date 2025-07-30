@@ -2,7 +2,6 @@
 CREATE OR REPLACE FUNCTION notify_prescription_changes()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Notification when prescription is created
     IF TG_OP = 'INSERT' THEN
         INSERT INTO notifications (
             patient_id, 
@@ -24,8 +23,7 @@ BEGIN
         
         RETURN NEW;
     END IF;
-    
-    -- Notification when prescription is updated
+
     IF TG_OP = 'UPDATE' THEN
         INSERT INTO notifications (
             patient_id, 
@@ -51,18 +49,15 @@ BEGIN
     RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
-
--- Create trigger for prescription changes
+--------------------------------------------------------------------
 CREATE TRIGGER prescription_notification_trigger
     AFTER INSERT OR UPDATE ON prescription
     FOR EACH ROW
     EXECUTE FUNCTION notify_prescription_changes();
 
--- Trigger for appointment status changes
 CREATE OR REPLACE FUNCTION notify_appointment_status_changes()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Notify patient when appointment status changes
     IF OLD.status != NEW.status THEN
         INSERT INTO notifications (
             patient_id, 
@@ -83,14 +78,12 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
--- Create trigger for appointment status changes
+---------------------------------------------------------
 CREATE TRIGGER appointment_status_notification_trigger
     AFTER UPDATE ON appointment
     FOR EACH ROW
     EXECUTE FUNCTION notify_appointment_status_changes();
 
--- Trigger for when patient uploads investigation report
 CREATE OR REPLACE FUNCTION notify_investigation_report_upload()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -117,7 +110,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create trigger for investigation report uploads
 CREATE TRIGGER investigation_report_notification_trigger
     AFTER INSERT ON investigation_report
     FOR EACH ROW
@@ -152,8 +144,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Now fire on both INSERT and UPDATE:
--- DROP TRIGGER IF EXISTS payment_notification_trigger ON payments;
 CREATE TRIGGER payment_notification_trigger
   AFTER INSERT OR UPDATE ON payments
   FOR EACH ROW

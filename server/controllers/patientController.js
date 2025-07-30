@@ -57,10 +57,11 @@ const createPatient = async (req, res) => {
   if (!user_id || !first_name || !last_name || !gender || !date_of_birth) {
     return res.status(400).json({ error: "user_id, first_name, last_name, gender, and date_of_birth are required." });
   }
-
+  const client = await pool.connect();
   try {
-    // Check 1: Verify the user exists and has the 'patient' role
-    const userResult = await pool.query('SELECT role FROM "user" WHERE user_id = $1', [user_id]);
+    await client.query('BEGIN');
+
+    const userResult = await client.query('SELECT role FROM "user" WHERE user_id = $1', [user_id]);
     if (userResult.rows.length === 0) {
       return res.status(404).json({ error: `User with user_id ${user_id} not found.` });
     }
@@ -68,8 +69,7 @@ const createPatient = async (req, res) => {
       return res.status(403).json({ error: `User with user_id ${user_id} is not a patient.` });
     }
 
-    // Check 2: Verify a patient profile for this user doesn't already exist
-    const patientExists = await pool.query('SELECT 1 FROM patient WHERE user_id = $1', [user_id]);
+    const patientExists = await client.query('SELECT 1 FROM patient WHERE user_id = $1', [user_id]);
     if (patientExists.rows.length > 0) {
       return res.status(409).json({ error: `A patient profile for user_id ${user_id} already exists.` });
     }
@@ -79,12 +79,16 @@ const createPatient = async (req, res) => {
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
     `;
-    const result = await pool.query(query, [user_id, first_name, last_name, gender, date_of_birth, phone_no, address, blood_group, health_condition]);
+    const result = await client.query(query, [user_id, first_name, last_name, gender, date_of_birth, phone_no, address, blood_group, health_condition]);
     
+    await client.query('COMMIT');
     res.status(201).json(result.rows[0]);
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error("Error creating patient:", err);
     res.status(500).json({ error: "Internal server error" });
+  } finally {
+     client.release();
   }
 };
 
@@ -100,6 +104,7 @@ const updatePatient = async (req, res) => {
   console.log('Request body:', req.body);
   console.log('Extracted fields:', { first_name, last_name, gender, date_of_birth, phone_no, address, blood_group, health_condition });
   //==============================================================================================
+  const client = await pool.connect();
   try {
     const query = `
       UPDATE patient SET
@@ -114,15 +119,20 @@ const updatePatient = async (req, res) => {
       WHERE patient_id = $9
       RETURNING *
     `;
-    const result = await pool.query(query, [first_name, last_name, gender, date_of_birth, phone_no, address, blood_group, health_condition, id]);
+    const result = await client.query(query, [first_name, last_name, gender, date_of_birth, phone_no, address, blood_group, health_condition, id]);
 
     if (result.rows.length === 0) {
+      await client.query('COMMIT');
       return res.status(404).json({ error: "Patient not found." });
     }
+    await client.query('COMMIT');
     res.status(200).json(result.rows[0]);
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error(`Error updating patient ${id}:`, err);
     res.status(500).json({ error: "Internal server error" });
+  } finally {
+     client.release();
   }
 };
 

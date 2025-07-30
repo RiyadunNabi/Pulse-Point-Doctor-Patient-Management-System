@@ -17,8 +17,11 @@ const createAppointment = async (req, res) => {
         return res.status(400).json({ error: "All booking details are required." });
     }
 
+    const client = await pool.connect();
+    
     try {
-        const result = await pool.query(
+        await client.query('BEGIN');
+        const result = await client.query(
             'SELECT * FROM create_appointment_with_prediction($1, $2, $3, $4, $5, $6, $7, $8, $9)',
             [
                 doctor_id,
@@ -35,7 +38,6 @@ const createAppointment = async (req, res) => {
 
         const appointmentData = result.rows[0];
         
-        // Format response with all required time information
         const response = {
             appointment_id: appointmentData.appointment_id,
             doctor_id,
@@ -49,11 +51,16 @@ const createAppointment = async (req, res) => {
             reason: appointmentData.reason
         };
 
+        await client.query('COMMIT');
+
         res.status(201).json(response);
 
     } catch (err) {
+        await client.query('ROLLBACK');
         console.error("Error booking appointment:", err);
         res.status(500).json({ error: err.message });
+    } finally {
+        client.release();
     }
 };
 // New endpoint to get patient health data for appointment booking
@@ -154,75 +161,29 @@ const updateAppointment = async (req, res) => {
     if (!allowedStatuses.includes(status)) {
         return res.status(400).json({ error: "Invalid status value." });
     }
-
+    const client = await pool.connect();
     try {
-        const result = await pool.query(
+        await client.query('BEGIN');
+
+        const result = await client.query(
             `UPDATE appointment SET status = $1 WHERE appointment_id = $2 RETURNING *`,
             [status, id]
         );
         if (result.rows.length === 0) {
+            await client.query('COMMIT');
             return res.status(404).json({ error: "Appointment not found." });
         }
+        await client.query('COMMIT');
         res.status(200).json(result.rows[0]);
     } catch (err) {
+        await client.query('ROLLBACK');
         console.error("Error updating appointment:", err);
         res.status(500).json({ error: "Internal server error" });
+    } finally {
+        client.release();
     }
 };
 
-// // @route   DELETE /api/appointments/:id
-// const cancelAppointment = async (req, res) => {
-//     const { id } = req.params;
-//     try {
-//         const result = await pool.query(
-//             `UPDATE appointment SET status = 'cancelled' WHERE appointment_id = $1 RETURNING *`,
-//             [id]
-//         );
-//         if (result.rows.length === 0) {
-//             return res.status(404).json({ error: "Appointment not found." });
-//         }
-//         res.status(204).send(); // Success, no content
-//     } catch (err) {
-//         console.error("Error cancelling appointment:", err);
-//         res.status(500).json({ error: "Internal server error" });
-//     }
-// };
-
-// // @route   GET /api/appointments/doctor/:doctorId/status/:status
-// const getAppointmentsByDoctorAndStatus = async (req, res) => {
-//     const { doctorId, status } = req.params;
-    
-//     try {
-//         const query = `
-//             SELECT 
-//                 a.appointment_id, 
-//                 a.appointment_date, 
-//                 a.appointment_time, 
-//                 a.status, 
-//                 a.reason,
-//                 a.created_at,
-//                 p.patient_id,
-//                 p.first_name as patient_first_name, 
-//                 p.last_name as patient_last_name,
-//                 p.phone_no as patient_phone,
-//                 u.email         AS patient_email,
-//                 p.date_of_birth,
-//                 p.gender as patient_gender,
-//                 p.address as patient_address
-//             FROM appointment a
-//             JOIN patient p ON a.patient_id = p.patient_id
-//             JOIN "user"    u ON p.user_id = u.user_id
-//             WHERE a.doctor_id = $1 AND a.status = $2
-//             ORDER BY a.appointment_date ASC, a.appointment_time ASC
-//         `;
-//         const result = await pool.query(query, [doctorId, status]);
-//         res.status(200).json(result.rows);
-//     } catch (err) {
-//         console.error(`Error fetching ${status} appointments:`, err);
-//         res.status(500).json({ error: "Internal server error" });
-//     }
-// };
-// server/controllers/appointmentController.js
 const getAppointmentsByDoctorAndStatus = async (req, res) => {
   const { doctorId, status } = req.params;
   try {
@@ -337,18 +298,25 @@ const checkExistingAppointment = async (req, res) => {
 
 const deleteAppointment = async (req, res) => {
     const { id } = req.params;
+    const client = await pool.connect();
     try {
-        const result = await pool.query(
+        await client.query('BEGIN');
+        const result = await client.query(
             'DELETE FROM appointment WHERE appointment_id = $1 RETURNING *',
             [id]
         );
         if (result.rows.length === 0) {
+            await client.query('COMMIT');
             return res.status(404).json({ error: "Appointment not found." });
         }
+        await client.query('COMMIT');
         res.status(204).send(); // Success, no content
     } catch (err) {
+        await client.query('ROLLBACK');
         console.error("Error deleting appointment:", err);
         res.status(500).json({ error: "Internal server error" });
+    } finally {
+        client.release();
     }
 };
 

@@ -98,7 +98,6 @@ WITH RECURSIVE
   ),
 
   booked AS (
-    -- join each appointment to the slot it falls into
     SELECT
       a.appointment_date,
       s.schedule_id,
@@ -123,7 +122,7 @@ SELECT
   s.schedule_id,
   s.source_type,
 
-  -- window’s total capacity in hours × rate:
+
   FLOOR(EXTRACT(EPOCH FROM (s.end_time - s.start_time)) / 3600) * s.max_per_hour
     AS total_capacity,
 
