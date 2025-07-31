@@ -87,7 +87,7 @@ const DoctorsPage = ({ user, onLogout }) => {
   // Fetch departments for filter dropdown
   const fetchDepartments = async () => {
     try {
-      const response = await axios.get('/api/doctors/departments');
+      const response = await axios.get('/api/departments/stats');
       setDepartments(response.data || []);
     } catch (error) {
       console.error('Error fetching departments:', error);
