@@ -3,17 +3,24 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Building2, Users, Star, IndianRupee } from 'lucide-react';
+import { ArrowLeft, Building2, Users, Star } from 'lucide-react';
 import DashboardNavigation from '../Navigation/DashboardNavigation';
+import DepartmentsFilters from './DepartmentsFilters';
 
 const DepartmentsPage = ({ user, onLogout }) => {
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({ search: '' });
   const navigate = useNavigate();
 
-  const fetchDepartments = async () => {
+  const fetchDepartments = async (filterParams = filters) => {
     try {
-      const response = await axios.get('/api/doctors/departments');
+      // const response = await axios.get(
+      //   `/api/departments/stats?${params.toString()}`   // Note the backticks (`), not single quotes (')
+      // );
+      const response = await axios.get('/api/departments/stats', {
+        params: { search: filterParams.search }
+      });
       setDepartments(response.data);
     } catch (error) {
       console.error('Error fetching departments:', error);
@@ -47,6 +54,9 @@ const DepartmentsPage = ({ user, onLogout }) => {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center space-x-4 mb-4">
+
+
+
             <button
               onClick={() => navigate('/dashboard')}
               className="p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
@@ -61,6 +71,18 @@ const DepartmentsPage = ({ user, onLogout }) => {
             </div>
           </div>
         </div>
+
+
+        {/* Filters */}
+        <DepartmentsFilters
+          filters={filters}
+          onFilterChange={(newF) => {
+            setFilters(newF);
+            setLoading(true);
+            fetchDepartments(newF);
+          }}
+        />
+
 
         {/* Departments Grid */}
         {loading ? (
@@ -127,7 +149,7 @@ const DepartmentCard = ({ department, onClick }) => {
               </div>
             </div>
           </div>
-          
+
           {/* Rating */}
           {avg_department_rating && (
             <div className="flex items-center space-x-1">
@@ -151,13 +173,14 @@ const DepartmentCard = ({ department, onClick }) => {
           {/* Fee Range */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <IndianRupee className="w-4 h-4 text-green-600" />
+              {/* <IndianRupee className="w-4 h-4 text-green-600" /> */}
+              <span className="w-4 h-4 text-green-600 text-lg">৳</span>
               <span className="text-sm text-slate-600">Consultation Fee</span>
             </div>
             <div className="text-sm font-medium text-slate-800">
-              {min_consultation_fee === max_consultation_fee 
-                ? `₹${min_consultation_fee}`
-                : `₹${min_consultation_fee} - ₹${max_consultation_fee}`
+              {min_consultation_fee === max_consultation_fee
+                ? `৳${min_consultation_fee}`
+                : `৳${min_consultation_fee} - ৳${max_consultation_fee}`
               }
             </div>
           </div>
@@ -167,7 +190,7 @@ const DepartmentCard = ({ department, onClick }) => {
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-600">Average Fee</span>
               <span className="text-sm font-medium text-slate-800">
-                ₹{avg_consultation_fee}
+                ৳{avg_consultation_fee}
               </span>
             </div>
           )}

@@ -19,12 +19,13 @@ const getAllDoctors = async (req, res) => {
 
   try {
     // If no query parameters, use basic function for backward compatibility
-    if (!search && !department && !minFee && !maxFee && !minRating && !gender && sortBy === 'name' && sortOrder === 'asc' && page == 1 && limit == 12) {
-      const result = await pool.query('SELECT * FROM get_all_doctors_basic()');
-      return res.status(200).json(result.rows);
-    }
+    // if (!search && !department && !minFee && !maxFee && !minRating && !gender && sortBy === 'name' && sortOrder === 'asc' && page == 1 && limit == 12) {
+    //   const result = await pool.query('SELECT * FROM get_all_doctors_basic()');
+    //   return res.status(200).json(result.rows);
+    // }
 
-    // Use advanced function with filters
+    // Use advanced function with filters 
+    // Always use advanced function with filters (even when all filters are empty)
     const result = await pool.query(
       'SELECT * FROM get_doctors_with_filters($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
       [
@@ -65,26 +66,26 @@ const getAllDoctors = async (req, res) => {
   }
 };
 
-// @route   GET /api/doctors/departments
-const getDepartmentsWithStats = async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM get_departments_with_stats()');
+// // @route   GET /api/doctors/departments
+// const getDepartmentsWithStats = async (req, res) => {
+//   try {
+//     const result = await pool.query('SELECT * FROM get_departments_with_stats()');
     
-    const departments = result.rows.map(dept => ({
-      ...dept,
-      doctor_count: parseInt(dept.doctor_count),
-      avg_department_rating: dept.avg_department_rating ? parseFloat(dept.avg_department_rating).toFixed(1) : null,
-      avg_consultation_fee: dept.avg_consultation_fee ? parseFloat(dept.avg_consultation_fee).toFixed(2) : null,
-      min_consultation_fee: dept.min_consultation_fee ? parseFloat(dept.min_consultation_fee).toFixed(2) : null,
-      max_consultation_fee: dept.max_consultation_fee ? parseFloat(dept.max_consultation_fee).toFixed(2) : null
-    }));
+//     const departments = result.rows.map(dept => ({
+//       ...dept,
+//       doctor_count: parseInt(dept.doctor_count),
+//       avg_department_rating: dept.avg_department_rating ? parseFloat(dept.avg_department_rating).toFixed(1) : null,
+//       avg_consultation_fee: dept.avg_consultation_fee ? parseFloat(dept.avg_consultation_fee).toFixed(2) : null,
+//       min_consultation_fee: dept.min_consultation_fee ? parseFloat(dept.min_consultation_fee).toFixed(2) : null,
+//       max_consultation_fee: dept.max_consultation_fee ? parseFloat(dept.max_consultation_fee).toFixed(2) : null
+//     }));
 
-    res.status(200).json(departments);
-  } catch (err) {
-    console.error("Error fetching departments:", err);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
+//     res.status(200).json(departments);
+//   } catch (err) {
+//     console.error("Error fetching departments:", err);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
 
 // @route   GET /api/doctors/:id
 const getDoctorById = async (req, res) => {
@@ -188,5 +189,4 @@ module.exports = {
   getDoctorById,
   createDoctor,
   updateDoctor,
-  getDepartmentsWithStats,
 };

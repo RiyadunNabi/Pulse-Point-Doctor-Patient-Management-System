@@ -292,7 +292,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 ---------------------------------------------------------------------
--- Enhanced appointment creation function that returns predicted time
+
 CREATE OR REPLACE FUNCTION create_appointment_with_prediction(
     p_doctor_id INTEGER,
     p_patient_id INTEGER,
@@ -455,43 +455,59 @@ BEGIN
     GROUP BY d.doctor_id, d.first_name, d.last_name, d.gender, d.bio, 
              d.consultation_fee, d.license_no, d.phone_no, d.address, d.avg_rating,
              dep.department_name, dep.department_id, u.email, u.is_active
-    ORDER BY 
-        CASE 
-            WHEN p_sort_by = 'name' AND p_sort_order = 'asc' THEN d.first_name
-            WHEN p_sort_by = 'name' AND p_sort_order = 'desc' THEN d.first_name
-        END ASC,
-        CASE 
-            WHEN p_sort_by = 'name' AND p_sort_order = 'desc' THEN d.first_name
-        END DESC,
-        CASE 
-            WHEN p_sort_by = 'rating' AND p_sort_order = 'asc' THEN d.avg_rating
-            WHEN p_sort_by = 'rating' AND p_sort_order = 'desc' THEN d.avg_rating
-        END ASC,
-        CASE 
-            WHEN p_sort_by = 'rating' AND p_sort_order = 'desc' THEN d.avg_rating
-        END DESC,
-        CASE 
-            WHEN p_sort_by = 'fee' AND p_sort_order = 'asc' THEN d.consultation_fee
-            WHEN p_sort_by = 'fee' AND p_sort_order = 'desc' THEN d.consultation_fee
-        END ASC,
-        CASE 
-            WHEN p_sort_by = 'fee' AND p_sort_order = 'desc' THEN d.consultation_fee
-        END DESC,
-        CASE 
-            WHEN p_sort_by = 'department' AND p_sort_order = 'asc' THEN dep.department_name
-            WHEN p_sort_by = 'department' AND p_sort_order = 'desc' THEN dep.department_name
-        END ASC,
-        CASE 
-            WHEN p_sort_by = 'department' AND p_sort_order = 'desc' THEN dep.department_name
-        END DESC,
-        CASE 
-            WHEN p_sort_by = 'appointments' AND p_sort_order = 'asc' THEN COUNT(a.appointment_id)
-            WHEN p_sort_by = 'appointments' AND p_sort_order = 'desc' THEN COUNT(a.appointment_id)
-        END ASC,
-        CASE 
-            WHEN p_sort_by = 'appointments' AND p_sort_order = 'desc' THEN COUNT(a.appointment_id)
-        END DESC,
-        d.doctor_id ASC
+    ORDER BY
+    -- NAME
+      CASE 
+        WHEN p_sort_by = 'name' AND p_sort_order = 'asc' 
+          THEN d.first_name 
+      END ASC,
+      CASE 
+        WHEN p_sort_by = 'name' AND p_sort_order = 'desc' 
+          THEN d.first_name 
+      END DESC,
+
+      -- RATING
+      CASE 
+        WHEN p_sort_by = 'rating' AND p_sort_order = 'asc' 
+          THEN d.avg_rating 
+      END ASC,
+      CASE 
+        WHEN p_sort_by = 'rating' AND p_sort_order = 'desc' 
+          THEN d.avg_rating 
+      END DESC,
+
+      -- FEE
+      CASE 
+        WHEN p_sort_by = 'fee' AND p_sort_order = 'asc' 
+          THEN d.consultation_fee 
+      END ASC,
+      CASE 
+        WHEN p_sort_by = 'fee' AND p_sort_order = 'desc' 
+          THEN d.consultation_fee 
+      END DESC,
+
+      -- DEPARTMENT
+      CASE 
+        WHEN p_sort_by = 'department' AND p_sort_order = 'asc' 
+          THEN dep.department_name 
+      END ASC,
+      CASE 
+        WHEN p_sort_by = 'department' AND p_sort_order = 'desc' 
+          THEN dep.department_name 
+      END DESC,
+
+      -- APPOINTMENTS
+      CASE 
+        WHEN p_sort_by = 'appointments' AND p_sort_order = 'asc' 
+          THEN COUNT(a.appointment_id) 
+      END ASC,
+      CASE 
+        WHEN p_sort_by = 'appointments' AND p_sort_order = 'desc' 
+          THEN COUNT(a.appointment_id) 
+      END DESC,
+
+      -- finally, tie‐breaker
+      d.doctor_id ASC
     LIMIT p_limit OFFSET ((p_page - 1) * p_limit);
 END;
 $$ LANGUAGE plpgsql;
@@ -876,3 +892,240 @@ BEGIN
     END IF;
 END;
 $$ LANGUAGE plpgsql;
+------------------------------------------------------------
+
+--------------------------------------------------------------
+
+
+---------------------------------------------------------------------------------------------
+-- Fixed Revenue Statistics Function
+DROP FUNCTION IF EXISTS get_doctor_revenue_stats(INTEGER, VARCHAR(20), DATE, DATE);
+
+CREATE OR REPLACE FUNCTION get_doctor_revenue_stats(
+    p_doctor_id INTEGER,
+    p_range VARCHAR(20) DEFAULT 'month',
+    p_start_date DATE DEFAULT NULL,
+    p_end_date DATE DEFAULT NULL
+)
+RETURNS TABLE (
+    today DECIMAL(10,2),
+    this_week DECIMAL(10,2),
+    this_month DECIMAL(10,2),
+    this_year DECIMAL(10,2),
+    today_change DECIMAL(5,2),
+    week_change DECIMAL(5,2),
+    month_change DECIMAL(5,2),
+    year_change DECIMAL(5,2)
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    prev_today DECIMAL(10,2) := 0;
+    prev_week DECIMAL(10,2) := 0;
+    prev_month DECIMAL(10,2) := 0;
+    prev_year DECIMAL(10,2) := 0;
+BEGIN
+    BEGIN
+        -- Get current period revenue with proper filtering
+        SELECT 
+            COALESCE(SUM(CASE WHEN DATE(pay.paid_time) = CURRENT_DATE THEN pay.amount END), 0),
+            COALESCE(SUM(CASE WHEN pay.paid_time >= CURRENT_DATE - INTERVAL '7 days' THEN pay.amount END), 0),
+            COALESCE(SUM(CASE WHEN EXTRACT(MONTH FROM pay.paid_time) = EXTRACT(MONTH FROM CURRENT_DATE) 
+                             AND EXTRACT(YEAR FROM pay.paid_time) = EXTRACT(YEAR FROM CURRENT_DATE) 
+                             THEN pay.amount END), 0),
+            COALESCE(SUM(CASE WHEN EXTRACT(YEAR FROM pay.paid_time) = EXTRACT(YEAR FROM CURRENT_DATE) 
+                             THEN pay.amount END), 0)
+        INTO today, this_week, this_month, this_year
+        FROM appointment a
+        JOIN payments pay ON a.appointment_id = pay.appointment_id
+        WHERE a.doctor_id = p_doctor_id 
+        AND a.status = 'completed'
+        AND pay.payment_status = 'paid'
+        AND (
+            CASE 
+                WHEN p_range = 'today' THEN DATE(pay.paid_time) = CURRENT_DATE
+                WHEN p_range = 'week' THEN pay.paid_time >= CURRENT_DATE - INTERVAL '7 days'
+                WHEN p_range = 'month' THEN EXTRACT(MONTH FROM pay.paid_time) = EXTRACT(MONTH FROM CURRENT_DATE) 
+                                           AND EXTRACT(YEAR FROM pay.paid_time) = EXTRACT(YEAR FROM CURRENT_DATE)
+                WHEN p_range = 'year' THEN EXTRACT(YEAR FROM pay.paid_time) = EXTRACT(YEAR FROM CURRENT_DATE)
+                WHEN p_range = 'custom' AND p_start_date IS NOT NULL AND p_end_date IS NOT NULL 
+                    THEN DATE(pay.paid_time) BETWEEN p_start_date AND p_end_date
+                ELSE TRUE
+            END
+        );
+
+        -- Get previous period data for comparison
+        SELECT 
+            COALESCE(SUM(CASE WHEN DATE(pay.paid_time) = CURRENT_DATE - INTERVAL '1 day' THEN pay.amount END), 0),
+            COALESCE(SUM(CASE WHEN pay.paid_time >= CURRENT_DATE - INTERVAL '14 days' 
+                                  AND pay.paid_time < CURRENT_DATE - INTERVAL '7 days' THEN pay.amount END), 0),
+            COALESCE(SUM(CASE WHEN EXTRACT(MONTH FROM pay.paid_time) = EXTRACT(MONTH FROM CURRENT_DATE - INTERVAL '1 month') 
+                             AND EXTRACT(YEAR FROM pay.paid_time) = EXTRACT(YEAR FROM CURRENT_DATE - INTERVAL '1 month') 
+                             THEN pay.amount END), 0),
+            COALESCE(SUM(CASE WHEN EXTRACT(YEAR FROM pay.paid_time) = EXTRACT(YEAR FROM CURRENT_DATE - INTERVAL '1 year') 
+                             THEN pay.amount END), 0)
+        INTO prev_today, prev_week, prev_month, prev_year
+        FROM appointment a
+        JOIN payments pay ON a.appointment_id = pay.appointment_id
+        WHERE a.doctor_id = p_doctor_id 
+        AND a.status = 'completed'
+        AND pay.payment_status = 'paid';
+
+        -- Calculate percentage changes
+        today_change := CASE WHEN prev_today > 0 THEN ((today - prev_today) / prev_today) * 100 ELSE 0 END;
+        week_change := CASE WHEN prev_week > 0 THEN ((this_week - prev_week) / prev_week) * 100 ELSE 0 END;
+        month_change := CASE WHEN prev_month > 0 THEN ((this_month - prev_month) / prev_month) * 100 ELSE 0 END;
+        year_change := CASE WHEN prev_year > 0 THEN ((this_year - prev_year) / prev_year) * 100 ELSE 0 END;
+
+        -- Return results
+        RETURN NEXT;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error calculating revenue stats: %', SQLERRM;
+    END;
+END;
+$$;
+------
+
+--------------------------------------------------------------------------------------------
+-- Fixed Revenue Chart Function
+DROP FUNCTION IF EXISTS get_doctor_revenue_chart(INTEGER, VARCHAR(20), DATE, DATE);
+CREATE OR REPLACE FUNCTION get_doctor_revenue_chart(
+    p_doctor_id   INTEGER,
+    p_range       VARCHAR(20) DEFAULT 'month',
+    p_start_date  DATE        DEFAULT NULL,
+    p_end_date    DATE        DEFAULT NULL
+)
+RETURNS TABLE (
+    period        TEXT,
+    revenue       DECIMAL(10,2),
+    total_revenue DECIMAL(10,2)
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    total_sum DECIMAL(10,2);
+BEGIN
+    -- Prepare (or clear) the temp table
+    CREATE TEMP TABLE IF NOT EXISTS temp_chart_data (
+      period  TEXT,
+      revenue DECIMAL(10,2)
+    ) ON COMMIT PRESERVE ROWS;
+    DELETE FROM temp_chart_data;
+
+    -- Populate it based on the requested range
+    IF p_range = 'today' THEN
+        INSERT INTO temp_chart_data
+        SELECT
+          EXTRACT(HOUR FROM pay.paid_time)::TEXT AS period,
+          COALESCE(SUM(pay.amount),0)::DECIMAL(10,2) AS revenue
+        FROM appointment a
+        JOIN payments  pay ON a.appointment_id = pay.appointment_id
+        WHERE a.doctor_id = p_doctor_id
+          AND DATE(pay.paid_time) = CURRENT_DATE
+          AND pay.payment_status = 'paid'
+          AND a.status = 'completed'
+        GROUP BY EXTRACT(HOUR FROM pay.paid_time)
+        ORDER BY 1;
+
+    ELSIF p_range = 'week' THEN
+        INSERT INTO temp_chart_data
+        SELECT
+          TO_CHAR(pay.paid_time,'YYYY-MM-DD') AS period,
+          COALESCE(SUM(pay.amount),0)::DECIMAL(10,2)
+        FROM appointment a
+        JOIN payments  pay ON a.appointment_id = pay.appointment_id
+        WHERE a.doctor_id = p_doctor_id
+          AND pay.paid_time >= CURRENT_DATE - INTERVAL '7 days'
+          AND pay.payment_status = 'paid'
+          AND a.status = 'completed'
+        GROUP BY TO_CHAR(pay.paid_time,'YYYY-MM-DD')
+        ORDER BY 1;
+
+    ELSIF p_range = 'month' THEN
+        INSERT INTO temp_chart_data
+        SELECT
+          TO_CHAR(pay.paid_time,'YYYY-MM-DD') AS period,
+          COALESCE(SUM(pay.amount),0)::DECIMAL(10,2)
+        FROM appointment a
+        JOIN payments  pay ON a.appointment_id = pay.appointment_id
+        WHERE a.doctor_id = p_doctor_id
+          AND EXTRACT(YEAR  FROM pay.paid_time) = EXTRACT(YEAR  FROM CURRENT_DATE)
+          AND EXTRACT(MONTH FROM pay.paid_time) = EXTRACT(MONTH FROM CURRENT_DATE)
+          AND pay.payment_status = 'paid'
+          AND a.status = 'completed'
+        GROUP BY TO_CHAR(pay.paid_time,'YYYY-MM-DD')
+        ORDER BY 1;
+
+    ELSIF p_range = 'year' THEN
+        INSERT INTO temp_chart_data
+        SELECT
+          TO_CHAR(pay.paid_time,'YYYY-MM') AS period,
+          COALESCE(SUM(pay.amount),0)::DECIMAL(10,2)
+        FROM appointment a
+        JOIN payments  pay ON a.appointment_id = pay.appointment_id
+        WHERE a.doctor_id = p_doctor_id
+          AND EXTRACT(YEAR FROM pay.paid_time) = EXTRACT(YEAR FROM CURRENT_DATE)
+          AND pay.payment_status = 'paid'
+          AND a.status = 'completed'
+        GROUP BY TO_CHAR(pay.paid_time,'YYYY-MM')
+        ORDER BY 1;
+
+    ELSIF p_range = 'custom'
+      AND p_start_date IS NOT NULL
+      AND p_end_date   IS NOT NULL THEN
+
+        INSERT INTO temp_chart_data
+        SELECT
+          TO_CHAR(pay.paid_time,'YYYY-MM-DD') AS period,
+          COALESCE(SUM(pay.amount),0)::DECIMAL(10,2)
+        FROM appointment a
+        JOIN payments  pay ON a.appointment_id = pay.appointment_id
+        WHERE a.doctor_id = p_doctor_id
+          AND pay.paid_time::DATE BETWEEN p_start_date AND p_end_date
+          AND pay.payment_status = 'paid'
+          AND a.status = 'completed'
+        GROUP BY TO_CHAR(pay.paid_time,'YYYY-MM-DD')
+        ORDER BY 1;
+
+    ELSE
+        -- default last 30 days
+        INSERT INTO temp_chart_data
+        SELECT
+          TO_CHAR(pay.paid_time,'YYYY-MM-DD') AS period,
+          COALESCE(SUM(pay.amount),0)::DECIMAL(10,2)
+        FROM appointment a
+        JOIN payments  pay ON a.appointment_id = pay.appointment_id
+        WHERE a.doctor_id = p_doctor_id
+          AND pay.paid_time >= CURRENT_DATE - INTERVAL '30 days'
+          AND pay.payment_status = 'paid'
+          AND a.status = 'completed'
+        GROUP BY TO_CHAR(pay.paid_time,'YYYY-MM-DD')
+        ORDER BY 1;
+    END IF;
+
+    -- Compute total (note the table alias!)
+    SELECT COALESCE(SUM(t.revenue),0)
+      INTO total_sum
+      FROM temp_chart_data AS t;
+
+    -- Return everything in one go
+    RETURN QUERY
+      SELECT t.period,
+             t.revenue,
+             total_sum AS total_revenue
+      FROM temp_chart_data AS t
+      ORDER BY t.period;
+
+EXCEPTION
+    WHEN OTHERS THEN
+      -- ensure cleanup if something goes wrong
+      DROP TABLE IF EXISTS temp_chart_data;
+      RAISE;
+END;
+$$;
+
+
+
+DROP FUNCTION IF EXISTS get_doctor_revenue_breakdown(INTEGER);

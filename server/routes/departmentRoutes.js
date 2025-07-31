@@ -3,6 +3,7 @@ const router = express.Router();
 
 const {
   getAllDepartments,
+  getDepartmentsWithStats,
   createDepartment,
   updateDepartment,
   deleteDepartment,
@@ -12,6 +13,9 @@ const {
 router.route("/")
   .get(getAllDepartments)
   .post(createDepartment);
+
+router.route("/stats")
+ .get(getDepartmentsWithStats);
 
 // /api/departments/:id
 router.route("/:id")
