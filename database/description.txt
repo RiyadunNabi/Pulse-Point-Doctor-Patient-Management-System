@@ -1,0 +1,7 @@
+This project, PulsePoint – Appointment Management System and Healthcare Portal, was developed for the Database Management Course: CSE-216. It is a comprehensive Doctor-Patient Management System built using PostgreSQL, focused on managing key healthcare interactions such as user registration (doctors and patients), appointment scheduling, prescriptions, medical documents, payments, and personal health monitoring.
+
+Doctors can define both recurring and specific schedules, and patients can book appointments based on dynamically predicted time slots. Appointments may be linked to patients’ health logs and medical records for better consultation context. The system also includes features for prescription management (including drugs and investigations), doctor reviews, notifications, and health articles.
+
+The database schema is normalized, structured with constraints, indexes, and foreign key relationships to enforce data integrity. Advanced SQL features such as views, triggers, stored procedures, and transaction-safe functions are used to automate processes (e.g., auto-updating appointment status) and provide insights like doctor revenue, appointment stats, and patient analytics.
+
+This project highlights the practical application of relational database design and advanced SQL techniques in a real-world healthcare scenario.

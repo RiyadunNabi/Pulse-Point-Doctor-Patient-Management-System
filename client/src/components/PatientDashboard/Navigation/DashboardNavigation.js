@@ -1,16 +1,15 @@
 // client/src/components/PatientDashboard/Navigation/DashboardNavigation.js
 
 import React from 'react';
-import { Bell, LogOut, User } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import PulsePointLogo from './PulsePointLogo';
+import PulsePointBrand from '../../shared/PulsePointBrand/PulsePointBrand';
 import { NAV_TABS } from '../utils/constants';
 import NotificationDropdown from '../../shared/NotificationDropdown';
 
 const DashboardNavigation = ({
     activeTab,
     onTabClick,
-    notifications,
     onLogout,
     user
 }) => {
@@ -41,14 +40,7 @@ const DashboardNavigation = ({
         <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
-                    {/* Logo and Brand */}
-                    <div className="flex items-center space-x-3">
-                        <PulsePointLogo className="w-10 h-10" />
-                        <div>
-                            <h1 className="text-xl font-bold text-slate-800">Pulse Point</h1>
-                            <p className="text-xs text-slate-500">Healthcare Portal</p>
-                        </div>
-                    </div>
+                    <PulsePointBrand className="w-14 h-14" showText={true} userRole="patient"/>
 
                     {/* Navigation Tabs */}
                     <div className="hidden md:flex items-center space-x-1">
@@ -66,20 +58,7 @@ const DashboardNavigation = ({
                         ))}
                     </div>
 
-                    {/* Right Side - Notifications, Profile, Logout
-                    <div className="flex items-center space-x-4">
-                        <button className="relative p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
-                            <Bell className="w-5 h-5" />
-                            {notifications > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                                    {notifications}
-                                </span>
-                            )}
-                        </button>
-
-                        <div className="w-8 h-8 bg-gradient-to-r from-sky-400 to-cyan-400 rounded-full flex items-center justify-center">
-                            <User className="w-5 h-5 text-white" />
-                        </div> */}
+            
                     {/* Right Side - Notifications, Profile, Logout */}
                     <div className="flex items-center space-x-2">
                         <NotificationDropdown user={user} />

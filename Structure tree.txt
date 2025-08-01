@@ -61,7 +61,9 @@ Pulse-Point-Doctor-Patient-Management-System/
         │   │           └── PaymentModal.js
         │   ├── Navigation/
         │   │   ├── DashboardNavigation.js
-        │   │   └── PulsePointLogo.js
+        │   │   └── PatientLogoBrand/
+        │   │       ├── PulsePointBrand.css
+        │   │       └── PulsePointBrand.js
         │   ├── MedicalDocumentsModal/
         │   │   ├── DocumentList.js
         │   │   ├── DocumentUploadForm.js
@@ -90,6 +92,7 @@ Pulse-Point-Doctor-Patient-Management-System/
         │   │   ├── DoctorsPagination.js
         │   │   └── index.js
         │   ├── DepartmentsSection/
+        │   │   ├── DepartmentsFilters.js
         │   │   └── DepartmentsPage.js
         │   └── DashboardContent/
         │       ├── AppointmentsView.js
@@ -113,16 +116,19 @@ Pulse-Point-Doctor-Patient-Management-System/
         │   ├── utils/
         │   │   └── dateUtils.js
         │   ├── shared/
-        │   │   └── DoctorNavigation.js
+        │   │   ├── DoctorNavigation.js
+        │   │   └── DoctorLogoBrand/
+        │   │       ├── PulsePointBrand.css
+        │   │       └── PulsePointBrand.js
         │   ├── RevenuePage/
         │   │   ├── DoctorRevenuePage.js
         │   │   ├── hooks/
         │   │   │   └── useRevenueData.js
         │   │   └── components/
         │   │       ├── DateRangeFilter.js
-        │   │       ├── RevenueBreakdown.js
         │   │       ├── RevenueChart.js
-        │   │       └── RevenueStatsCards.js
+        │   │       ├── RevenueStatsCards.js
+        │   │       └── uselessRevenueBreakdown.js
         │   ├── MyPatientsPage/
         │   │   ├── MyPatientsPage.js
         │   │   └── components/

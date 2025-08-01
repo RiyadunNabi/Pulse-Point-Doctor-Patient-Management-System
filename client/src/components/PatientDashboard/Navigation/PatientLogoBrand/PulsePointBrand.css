@@ -1,0 +1,130 @@
+/* Container */
+.pulse-brand-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Logo */
+.pulse-logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pulse-logo-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.pulse-circle {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.ekg-line {
+  animation: ekg-line 3s ease-in-out infinite;
+}
+
+.heartbeat-dot {
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+/* Text */
+.pulse-text-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.pulse-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 11ch;
+  flex-shrink: 0;
+}
+
+.pulse-subtitle {
+  font-size: 0.75rem;
+  color: #64748b;
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-top: 2px;
+  min-width: 13ch;
+  flex-shrink: 0;
+}
+
+.animated-text::before {
+  content: '';
+  animation: typewriter-title 2s steps(11) 0.5s forwards;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.animated-subtext::before {
+  content: '';
+  animation: typewriter-subtitle 1s steps(13) 3s forwards;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Animations */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  25% { transform: scale(1.2); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 0.9; }
+  75% { transform: scale(1.3); opacity: 0.7; }
+}
+
+@keyframes ekg-line {
+  0% { stroke-dashoffset: 100; opacity: 0.7; }
+  50% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: -100; opacity: 0.7; }
+}
+
+@keyframes typewriter-title {
+  0% { content: ''; }
+  9.09% { content: 'P'; }
+  18.18% { content: 'Pu'; }
+  27.27% { content: 'Pul'; }
+  36.36% { content: 'Puls'; }
+  45.45% { content: 'Pulse'; }
+  54.54% { content: 'Pulse '; }
+  63.63% { content: 'Pulse P'; }
+  72.72% { content: 'Pulse Po'; }
+  81.81% { content: 'Pulse Poi'; }
+  90.90% { content: 'Pulse Poin'; }
+  100% { content: 'Pulse Point'; }
+}
+
+@keyframes typewriter-subtitle {
+  0% { content: ''; }
+  7.69% { content: 'P'; }
+  15.38% { content: 'Pa'; }
+  23.07% { content: 'Pat'; }
+  30.76% { content: 'Pati'; }
+  38.45% { content: 'Patie'; }
+  46.14% { content: 'Patien'; }
+  53.83% { content: 'Patient '; }
+  61.52% { content: 'Patient P'; }
+  69.21% { content: 'Patient Po'; }
+  76.90% { content: 'Patient Por'; }
+  84.59% { content: 'Patient Port'; }
+  92.28% { content: 'Patient Porta'; }
+  100% { content: 'Patient Portal'; }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .pulse-brand-container { gap: 0.5rem; }
+  .pulse-title { font-size: 1rem; }
+  .pulse-subtitle { font-size: 0.625rem; }
+}
