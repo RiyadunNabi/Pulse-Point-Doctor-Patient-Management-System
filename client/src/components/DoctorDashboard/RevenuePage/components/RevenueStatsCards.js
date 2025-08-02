@@ -2,14 +2,14 @@
 import React from 'react';
 import { DollarSign, TrendingUp, Calendar } from 'lucide-react';
 
-// The component now accepts `chartData` to get the total earnings
-function RevenueStatsCards({ stats, chartData }) {
+// This component no longer needs chartData, it's now fully static.
+function RevenueStatsCards({ stats }) {
     const revenueStats = {
         today: stats?.today || 0,
         thisMonth: stats?.thisMonth || 0,
         thisYear: stats?.thisYear || 0,
-        // The new design has a "Total" card, which we can get from the chartData object
-        totalEarnings: chartData?.total || 0
+        // IMPORTANT: We now use the static total from the main 'stats' prop
+        totalEarnings: stats?.total || 0 
     };
 
     return (
@@ -53,7 +53,7 @@ function RevenueStatsCards({ stats, chartData }) {
                 </div>
             </div>
             
-            {/* Card 4: Total Earnings */}
+            {/* Card 4: Total Earnings (Static) */}
             <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                     <div>

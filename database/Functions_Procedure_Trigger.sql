@@ -898,100 +898,51 @@ $$ LANGUAGE plpgsql;
 
 
 ---------------------------------------------------------------------------------------------
--- Fixed Revenue Statistics Function
-DROP FUNCTION IF EXISTS get_doctor_revenue_stats(INTEGER, VARCHAR(20), DATE, DATE);
 
-CREATE OR REPLACE FUNCTION get_doctor_revenue_stats(
-    p_doctor_id INTEGER,
-    p_range VARCHAR(20) DEFAULT 'month',
-    p_start_date DATE DEFAULT NULL,
-    p_end_date DATE DEFAULT NULL
+---------------------------------------------------------------------------------------------
+------
+CREATE OR REPLACE FUNCTION get_doctor_static_revenue_stats(
+    p_doctor_id INTEGER
 )
 RETURNS TABLE (
     today DECIMAL(10,2),
     this_week DECIMAL(10,2),
     this_month DECIMAL(10,2),
     this_year DECIMAL(10,2),
-    today_change DECIMAL(5,2),
-    week_change DECIMAL(5,2),
-    month_change DECIMAL(5,2),
-    year_change DECIMAL(5,2)
+    total DECIMAL(10,2) -- Added a total column for lifetime earnings
 )
 LANGUAGE plpgsql
 AS $$
-DECLARE
-    prev_today DECIMAL(10,2) := 0;
-    prev_week DECIMAL(10,2) := 0;
-    prev_month DECIMAL(10,2) := 0;
-    prev_year DECIMAL(10,2) := 0;
 BEGIN
-    BEGIN
-        -- Get current period revenue with proper filtering
-        SELECT 
-            COALESCE(SUM(CASE WHEN DATE(pay.paid_time) = CURRENT_DATE THEN pay.amount END), 0),
-            COALESCE(SUM(CASE WHEN pay.paid_time >= CURRENT_DATE - INTERVAL '7 days' THEN pay.amount END), 0),
-            COALESCE(SUM(CASE WHEN EXTRACT(MONTH FROM pay.paid_time) = EXTRACT(MONTH FROM CURRENT_DATE) 
-                             AND EXTRACT(YEAR FROM pay.paid_time) = EXTRACT(YEAR FROM CURRENT_DATE) 
-                             THEN pay.amount END), 0),
-            COALESCE(SUM(CASE WHEN EXTRACT(YEAR FROM pay.paid_time) = EXTRACT(YEAR FROM CURRENT_DATE) 
-                             THEN pay.amount END), 0)
-        INTO today, this_week, this_month, this_year
-        FROM appointment a
-        JOIN payments pay ON a.appointment_id = pay.appointment_id
-        WHERE a.doctor_id = p_doctor_id 
-        AND a.status = 'completed'
-        AND pay.payment_status = 'paid'
-        AND (
-            CASE 
-                WHEN p_range = 'today' THEN DATE(pay.paid_time) = CURRENT_DATE
-                WHEN p_range = 'week' THEN pay.paid_time >= CURRENT_DATE - INTERVAL '7 days'
-                WHEN p_range = 'month' THEN EXTRACT(MONTH FROM pay.paid_time) = EXTRACT(MONTH FROM CURRENT_DATE) 
-                                           AND EXTRACT(YEAR FROM pay.paid_time) = EXTRACT(YEAR FROM CURRENT_DATE)
-                WHEN p_range = 'year' THEN EXTRACT(YEAR FROM pay.paid_time) = EXTRACT(YEAR FROM CURRENT_DATE)
-                WHEN p_range = 'custom' AND p_start_date IS NOT NULL AND p_end_date IS NOT NULL 
-                    THEN DATE(pay.paid_time) BETWEEN p_start_date AND p_end_date
-                ELSE TRUE
-            END
-        );
-
-        -- Get previous period data for comparison
-        SELECT 
-            COALESCE(SUM(CASE WHEN DATE(pay.paid_time) = CURRENT_DATE - INTERVAL '1 day' THEN pay.amount END), 0),
-            COALESCE(SUM(CASE WHEN pay.paid_time >= CURRENT_DATE - INTERVAL '14 days' 
-                                  AND pay.paid_time < CURRENT_DATE - INTERVAL '7 days' THEN pay.amount END), 0),
-            COALESCE(SUM(CASE WHEN EXTRACT(MONTH FROM pay.paid_time) = EXTRACT(MONTH FROM CURRENT_DATE - INTERVAL '1 month') 
-                             AND EXTRACT(YEAR FROM pay.paid_time) = EXTRACT(YEAR FROM CURRENT_DATE - INTERVAL '1 month') 
-                             THEN pay.amount END), 0),
-            COALESCE(SUM(CASE WHEN EXTRACT(YEAR FROM pay.paid_time) = EXTRACT(YEAR FROM CURRENT_DATE - INTERVAL '1 year') 
-                             THEN pay.amount END), 0)
-        INTO prev_today, prev_week, prev_month, prev_year
-        FROM appointment a
-        JOIN payments pay ON a.appointment_id = pay.appointment_id
-        WHERE a.doctor_id = p_doctor_id 
-        AND a.status = 'completed'
-        AND pay.payment_status = 'paid';
-
-        -- Calculate percentage changes
-        today_change := CASE WHEN prev_today > 0 THEN ((today - prev_today) / prev_today) * 100 ELSE 0 END;
-        week_change := CASE WHEN prev_week > 0 THEN ((this_week - prev_week) / prev_week) * 100 ELSE 0 END;
-        month_change := CASE WHEN prev_month > 0 THEN ((this_month - prev_month) / prev_month) * 100 ELSE 0 END;
-        year_change := CASE WHEN prev_year > 0 THEN ((this_year - prev_year) / prev_year) * 100 ELSE 0 END;
-
-        -- Return results
-        RETURN NEXT;
-
-    EXCEPTION
-        WHEN OTHERS THEN
-            RAISE EXCEPTION 'Error calculating revenue stats: %', SQLERRM;
-    END;
+    -- This function now correctly calculates each period's sum independently
+    -- from the full set of the doctor's payments.
+    RETURN QUERY
+    SELECT 
+        -- Today's Revenue
+        COALESCE(SUM(pay.amount) FILTER (WHERE DATE(pay.paid_time) = CURRENT_DATE), 0),
+        -- This Week's Revenue (last 7 days)
+        COALESCE(SUM(pay.amount) FILTER (WHERE pay.paid_time >= CURRENT_DATE - INTERVAL '6 days' AND pay.paid_time < CURRENT_DATE + INTERVAL '1 day'), 0),
+        -- This Month's Revenue
+        COALESCE(SUM(pay.amount) FILTER (WHERE DATE_TRUNC('month', pay.paid_time) = DATE_TRUNC('month', CURRENT_DATE)), 0),
+        -- This Year's Revenue
+        COALESCE(SUM(pay.amount) FILTER (WHERE DATE_TRUNC('year', pay.paid_time) = DATE_TRUNC('year', CURRENT_DATE)), 0),
+        -- Total Lifetime Revenue
+        COALESCE(SUM(pay.amount), 0)
+    FROM appointment a
+    JOIN payments pay ON a.appointment_id = pay.appointment_id
+    WHERE a.doctor_id = p_doctor_id 
+    AND a.status = 'completed'
+    AND pay.payment_status = 'paid';
 END;
 $$;
-------
+
 
 --------------------------------------------------------------------------------------------
--- Fixed Revenue Chart Function
-DROP FUNCTION IF EXISTS get_doctor_revenue_chart(INTEGER, VARCHAR(20), DATE, DATE);
-CREATE OR REPLACE FUNCTION get_doctor_revenue_chart(
+DROP FUNCTION IF EXISTS get_doctor_ranged_based_revenue(INTEGER, VARCHAR(20), DATE, DATE);
+
+--------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS get_doctor_ranged_based_revenue(INTEGER, VARCHAR(20), DATE, DATE);
+CREATE OR REPLACE FUNCTION get_doctor_range_based_revenue(
     p_doctor_id   INTEGER,
     p_range       VARCHAR(20) DEFAULT 'month',
     p_start_date  DATE        DEFAULT NULL,
@@ -1007,125 +958,115 @@ AS $$
 DECLARE
     total_sum DECIMAL(10,2);
 BEGIN
-    -- Prepare (or clear) the temp table
     CREATE TEMP TABLE IF NOT EXISTS temp_chart_data (
-      period  TEXT,
-      revenue DECIMAL(10,2)
+      sort_key DATE,
+      period   TEXT,
+      revenue  DECIMAL(10,2)
     ) ON COMMIT PRESERVE ROWS;
     DELETE FROM temp_chart_data;
 
-    -- Populate it based on the requested range
+    -- --- LOGIC FOR EACH DATE RANGE (WITH THE FINAL FIX) ---
+
+    -- TODAY'S VIEW (group by hour)
     IF p_range = 'today' THEN
         INSERT INTO temp_chart_data
         SELECT
-          EXTRACT(HOUR FROM pay.paid_time)::TEXT AS period,
-          COALESCE(SUM(pay.amount),0)::DECIMAL(10,2) AS revenue
+          (CURRENT_DATE + (EXTRACT(HOUR FROM pay.paid_time) * INTERVAL '1 hour'))::DATE AS sort_key,
+          -- FIX IS HERE: We build the label from the grouped value, not the raw column
+          LPAD(EXTRACT(HOUR FROM pay.paid_time)::TEXT, 2, '0') || ':00' AS period,
+          COALESCE(SUM(pay.amount), 0) AS revenue
         FROM appointment a
-        JOIN payments  pay ON a.appointment_id = pay.appointment_id
+        JOIN payments pay ON a.appointment_id = pay.appointment_id
         WHERE a.doctor_id = p_doctor_id
           AND DATE(pay.paid_time) = CURRENT_DATE
-          AND pay.payment_status = 'paid'
-          AND a.status = 'completed'
-        GROUP BY EXTRACT(HOUR FROM pay.paid_time)
-        ORDER BY 1;
+          AND pay.payment_status = 'paid' AND a.status = 'completed'
+        GROUP BY EXTRACT(HOUR FROM pay.paid_time);
 
+    -- WEEKLY VIEW (group by day)
     ELSIF p_range = 'week' THEN
         INSERT INTO temp_chart_data
         SELECT
-          TO_CHAR(pay.paid_time,'YYYY-MM-DD') AS period,
-          COALESCE(SUM(pay.amount),0)::DECIMAL(10,2)
+          DATE(pay.paid_time) AS sort_key,
+          TO_CHAR(DATE(pay.paid_time), 'Dy, Mon DD') AS period,
+          COALESCE(SUM(pay.amount), 0) AS revenue
         FROM appointment a
-        JOIN payments  pay ON a.appointment_id = pay.appointment_id
+        JOIN payments pay ON a.appointment_id = pay.appointment_id
         WHERE a.doctor_id = p_doctor_id
-          AND pay.paid_time >= CURRENT_DATE - INTERVAL '7 days'
-          AND pay.payment_status = 'paid'
-          AND a.status = 'completed'
-        GROUP BY TO_CHAR(pay.paid_time,'YYYY-MM-DD')
-        ORDER BY 1;
+          AND pay.paid_time >= (CURRENT_DATE - INTERVAL '6 days') AND pay.paid_time < (CURRENT_DATE + INTERVAL '1 day')
+          AND pay.payment_status = 'paid' AND a.status = 'completed'
+        GROUP BY DATE(pay.paid_time);
 
+    -- MONTHLY VIEW (group by day)
     ELSIF p_range = 'month' THEN
         INSERT INTO temp_chart_data
         SELECT
-          TO_CHAR(pay.paid_time,'YYYY-MM-DD') AS period,
-          COALESCE(SUM(pay.amount),0)::DECIMAL(10,2)
+          DATE(pay.paid_time) AS sort_key,
+          TO_CHAR(DATE(pay.paid_time), 'DD-Mon') AS period,
+          COALESCE(SUM(pay.amount), 0) AS revenue
         FROM appointment a
-        JOIN payments  pay ON a.appointment_id = pay.appointment_id
+        JOIN payments pay ON a.appointment_id = pay.appointment_id
         WHERE a.doctor_id = p_doctor_id
-          AND EXTRACT(YEAR  FROM pay.paid_time) = EXTRACT(YEAR  FROM CURRENT_DATE)
-          AND EXTRACT(MONTH FROM pay.paid_time) = EXTRACT(MONTH FROM CURRENT_DATE)
-          AND pay.payment_status = 'paid'
-          AND a.status = 'completed'
-        GROUP BY TO_CHAR(pay.paid_time,'YYYY-MM-DD')
-        ORDER BY 1;
+          AND DATE_TRUNC('month', pay.paid_time) = DATE_TRUNC('month', CURRENT_DATE)
+          AND pay.payment_status = 'paid' AND a.status = 'completed'
+        GROUP BY DATE(pay.paid_time);
 
+    -- YEARLY VIEW (group by month)
     ELSIF p_range = 'year' THEN
         INSERT INTO temp_chart_data
         SELECT
-          TO_CHAR(pay.paid_time,'YYYY-MM') AS period,
-          COALESCE(SUM(pay.amount),0)::DECIMAL(10,2)
+          DATE_TRUNC('month', pay.paid_time)::DATE AS sort_key,
+          TO_CHAR(DATE_TRUNC('month', pay.paid_time), 'Mon') AS period,
+          COALESCE(SUM(pay.amount), 0) AS revenue
         FROM appointment a
-        JOIN payments  pay ON a.appointment_id = pay.appointment_id
+        JOIN payments pay ON a.appointment_id = pay.appointment_id
         WHERE a.doctor_id = p_doctor_id
-          AND EXTRACT(YEAR FROM pay.paid_time) = EXTRACT(YEAR FROM CURRENT_DATE)
-          AND pay.payment_status = 'paid'
-          AND a.status = 'completed'
-        GROUP BY TO_CHAR(pay.paid_time,'YYYY-MM')
-        ORDER BY 1;
-
-    ELSIF p_range = 'custom'
-      AND p_start_date IS NOT NULL
-      AND p_end_date   IS NOT NULL THEN
-
+          AND DATE_TRUNC('year', pay.paid_time) = DATE_TRUNC('year', CURRENT_DATE)
+          AND pay.payment_status = 'paid' AND a.status = 'completed'
+        GROUP BY DATE_TRUNC('month', pay.paid_time);
+        
+    -- LAST 5 YEARS VIEW (group by year)
+    ELSIF p_range = 'last_5_years' THEN
         INSERT INTO temp_chart_data
         SELECT
-          TO_CHAR(pay.paid_time,'YYYY-MM-DD') AS period,
-          COALESCE(SUM(pay.amount),0)::DECIMAL(10,2)
+          DATE_TRUNC('year', pay.paid_time)::DATE AS sort_key,
+          TO_CHAR(DATE_TRUNC('year', pay.paid_time), 'YYYY') AS period,
+          COALESCE(SUM(pay.amount), 0) AS revenue
         FROM appointment a
-        JOIN payments  pay ON a.appointment_id = pay.appointment_id
+        JOIN payments pay ON a.appointment_id = pay.appointment_id
         WHERE a.doctor_id = p_doctor_id
-          AND pay.paid_time::DATE BETWEEN p_start_date AND p_end_date
-          AND pay.payment_status = 'paid'
-          AND a.status = 'completed'
-        GROUP BY TO_CHAR(pay.paid_time,'YYYY-MM-DD')
-        ORDER BY 1;
-
-    ELSE
-        -- default last 30 days
+          AND pay.paid_time >= DATE_TRUNC('year', CURRENT_DATE) - INTERVAL '4 years'
+          AND pay.payment_status = 'paid' AND a.status = 'completed'
+        GROUP BY DATE_TRUNC('year', pay.paid_time);
+    
+    -- CUSTOM RANGE VIEW (group by day)
+    ELSIF p_range = 'custom' AND p_start_date IS NOT NULL AND p_end_date IS NOT NULL THEN
         INSERT INTO temp_chart_data
         SELECT
-          TO_CHAR(pay.paid_time,'YYYY-MM-DD') AS period,
-          COALESCE(SUM(pay.amount),0)::DECIMAL(10,2)
+          DATE(pay.paid_time) AS sort_key,
+          TO_CHAR(DATE(pay.paid_time), 'YYYY-MM-DD') AS period,
+          COALESCE(SUM(pay.amount), 0) AS revenue
         FROM appointment a
-        JOIN payments  pay ON a.appointment_id = pay.appointment_id
+        JOIN payments pay ON a.appointment_id = pay.appointment_id
         WHERE a.doctor_id = p_doctor_id
-          AND pay.paid_time >= CURRENT_DATE - INTERVAL '30 days'
-          AND pay.payment_status = 'paid'
-          AND a.status = 'completed'
-        GROUP BY TO_CHAR(pay.paid_time,'YYYY-MM-DD')
-        ORDER BY 1;
+          AND DATE(pay.paid_time) BETWEEN p_start_date AND p_end_date
+          AND pay.payment_status = 'paid' AND a.status = 'completed'
+        GROUP BY DATE(pay.paid_time);
     END IF;
 
-    -- Compute total (note the table alias!)
-    SELECT COALESCE(SUM(t.revenue),0)
+    -- Compute the total
+    SELECT COALESCE(SUM(t.revenue), 0)
       INTO total_sum
       FROM temp_chart_data AS t;
 
-    -- Return everything in one go
+    -- Return the final data, correctly sorted
     RETURN QUERY
-      SELECT t.period,
-             t.revenue,
-             total_sum AS total_revenue
+      SELECT t.period, t.revenue, total_sum AS total_revenue
       FROM temp_chart_data AS t
-      ORDER BY t.period;
+      ORDER BY t.sort_key;
 
 EXCEPTION
     WHEN OTHERS THEN
-      -- ensure cleanup if something goes wrong
       DROP TABLE IF EXISTS temp_chart_data;
       RAISE;
 END;
 $$;
-
-
-
-DROP FUNCTION IF EXISTS get_doctor_revenue_breakdown(INTEGER);

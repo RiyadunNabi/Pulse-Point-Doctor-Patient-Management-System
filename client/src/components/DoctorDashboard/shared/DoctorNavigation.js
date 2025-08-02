@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, Stethoscope, DollarSign } from 'lucide-react';
+import { LogOut, Stethoscope} from 'lucide-react';
 import PulsePointBrand from '../../shared/PulsePointBrand/PulsePointBrand';
 import NotificationDropdown from '../../shared/NotificationDropdown';
 
@@ -14,7 +14,7 @@ const DoctorNavigation = ({ user, onLogout }) => {
     { id: 'dashboard', label: 'Dashboard', path: '/doctordashboard' },
     { id: 'appointments', label: 'Appointments', path: '/doctor-appointments' },
     { id: 'patients', label: 'My Patients', path: '/doctor-patients' },
-    { id: 'revenue', label: 'Revenue', path: '/doctor-revenue', icon: DollarSign },
+    { id: 'revenue', label: 'Revenue', path: '/doctor-revenue'},
     { id: 'articles', label: 'Health Articles', path: '/doctor-articles' },
   ];
 

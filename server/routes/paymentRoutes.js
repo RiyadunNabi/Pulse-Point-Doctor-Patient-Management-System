@@ -8,8 +8,8 @@ const {
     // updatePayment,
     getPaymentCountsByDoctor,
     getAppointmentsByPaymentStatus,
-    getRevenueStats,
-    getRevenueChart,
+    getStaticRevenueStats,
+    getDoctorRangeBasedRevenue,
 } = require('../controllers/paymentController');
 
 router.route('/')
@@ -18,7 +18,7 @@ router.route('/')
 
 router.route('/:id')
     .get(getPaymentById);
-    // .patch(updatePayment);
+// .patch(updatePayment);
 
 router.route('/appointment/:appointmentId')
     .get(getPaymentByAppointment);
@@ -30,10 +30,14 @@ router.route('/doctor/:doctorId/counts')
 router.route('/doctor/:doctorId/appointments/:paymentStatus')
     .get(getAppointmentsByPaymentStatus);
 
-router.route('/doctor/:doctorId/revenue-stats')
-    .get(getRevenueStats);
+router.get(
+    '/doctor/:doctorId/static-stats',
+    getStaticRevenueStats
+);
 
-router.route('/doctor/:doctorId/revenue-chart')
-    .get(getRevenueChart);
+router.get(
+    '/doctor/:doctorId/revenue-chart', 
+    getDoctorRangeBasedRevenue
+);
 
 module.exports = router;

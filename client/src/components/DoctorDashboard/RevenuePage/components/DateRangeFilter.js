@@ -65,7 +65,8 @@ function DateRangeFilter({ selectedRange, customRange, onRangeChange }) {
         { id: 'today', label: 'Today' },
         { id: 'week', label: 'Last 7 Days' },
         { id: 'month', label: 'This Month' },
-        { id: 'year', label: 'This Year' }
+        { id: 'year', label: 'This Year' },
+        { id: 'last_5_years', label: 'Last 5 Years' }
     ];
     
     return (

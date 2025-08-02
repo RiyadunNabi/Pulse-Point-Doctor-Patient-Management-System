@@ -1,7 +1,6 @@
 // client/src/components/DoctorDashboard/RevenuePage/components/RevenueChart.js
 import React from 'react';
 import { Line } from 'react-chartjs-2';
-import { TrendingUp } from 'lucide-react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -74,7 +73,7 @@ function RevenueChart({ data, timeFilter }) {
     datasets: [
       {
         label: 'Revenue',
-        data: data?.values || [],
+        data: data?.data || [],
         borderColor: '#38bdf8',
         backgroundColor: 'rgba(56, 189, 248, 0.1)',
         borderWidth: 3,
@@ -94,6 +93,7 @@ function RevenueChart({ data, timeFilter }) {
       week: 'Daily Revenue (Last 7 Days)',
       month: 'Daily Revenue (This Month)',
       year: 'Monthly Revenue (This Year)',
+      last_5_years: 'Yearly Revenue (Last 5 Years)',
       custom: 'Revenue (Custom Range)'
     };
     return labels[timeFilter] || 'Revenue Trend';

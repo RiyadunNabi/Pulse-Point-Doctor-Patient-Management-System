@@ -1,62 +1,70 @@
-// client/src/components/DoctorDashboard/RevenuePage/hooks/useRevenueData.js
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import axios from 'axios';
 
 function useRevenueData(doctorId) {
-  const [revenueStats, setRevenueStats] = useState({});
-  const [chartData, setChartData] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+    const [revenueStats, setRevenueStats] = useState({});
+    const [chartData, setChartData] = useState({});
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-  const fetchRevenueData = useCallback(async (dateRange, customRange) => {
-    if (!doctorId) return;
+    useEffect(() => {
+        if (!doctorId) return;
 
-    setLoading(true);
-    setError(null);
+        const fetchStaticData = async () => {
+            try {
+                const response = await axios.get(`/api/payments/doctor/${doctorId}/static-stats`);
+                const apiStatsData = response.data;
+                setRevenueStats({
+                    today: apiStatsData.today || 0,
+                    thisMonth: apiStatsData.this_month || 0,
+                    thisYear: apiStatsData.this_year || 0,
+                    total: apiStatsData.total || 0
+                });
+            } catch (err) {
+                console.error('Error fetching static stats:', err);
+                setError('Failed to load overview stats. Please refresh the page.');
+                // We don't set loading to false here, as the chart fetch might still be running.
+            }
+        };
 
-    try {
-      const params = {
-        range: dateRange,
-        ...(dateRange === 'custom' && customRange.startDate && customRange.endDate && {
-          startDate: customRange.startDate,
-          endDate: customRange.endDate
-        })
-      };
+        fetchStaticData();
+    }, [doctorId]); // This dependency array ensures it only runs when `doctorId` changes.
 
-      // Fetch revenue statistics
-      const statsResponse = await axios.get(`/api/payments/doctor/${doctorId}/revenue-stats`, { params });
-    //   setRevenueStats(statsResponse.data);
-       const s = statsResponse.data;
- setRevenueStats({
-   today:        s.today,
-   thisWeek:     s.this_week,
-   thisMonth:    s.this_month,
-   thisYear:     s.this_year,
-   todayChange:  s.today_change,
-   weekChange:   s.week_change,
-   monthChange:  s.month_change,
-   yearChange:   s.year_change,
- });
+    const fetchChartData = useCallback(async (dateRange, customRange) => {
+        if (!doctorId) return;
 
-      // Fetch chart data
-      const chartResponse = await axios.get(`/api/payments/doctor/${doctorId}/revenue-chart`, { params });
-      setChartData(chartResponse.data);
+        setLoading(true);
+        // We only clear errors related to the chart, not a potential static-data error.
+        if (!error?.includes('overview')) setError(null); 
+        
+        try {
+            const chartParams = {
+                range: dateRange,
+                ...(dateRange === 'custom' && customRange.startDate && {
+                    startDate: customRange.startDate,
+                    endDate: customRange.endDate
+                })
+            };
+            const response = await axios.get(
+                `/api/payments/doctor/${doctorId}/revenue-chart`, 
+                { params: chartParams }
+            );
+            setChartData(response.data);
+        } catch (err) {
+            console.error('Error fetching chart data:', err);
+            setError(err.response?.data?.error || 'Failed to load chart data.');
+        } finally {
+            setLoading(false);
+        }
+    }, [doctorId, error]);
 
-    } catch (err) {
-      console.error('Error fetching revenue data:', err);
-      setError(err.response?.data?.error || 'Failed to fetch revenue data');
-    } finally {
-      setLoading(false);
-    }
-  }, [doctorId]);
-
-  return {
-    revenueStats,
-    chartData,
-    loading,
-    error,
-    fetchRevenueData
-  };
+    return {
+        revenueStats,
+        chartData,
+        loading,
+        error,
+        fetchChartData
+    };
 }
 
 export default useRevenueData;

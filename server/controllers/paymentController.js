@@ -33,7 +33,7 @@ const createPayment = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
   finally {
-     client.release();
+    client.release();
   }
 };
 
@@ -43,7 +43,7 @@ const createPayment = async (req, res) => {
  */
 const getPaymentCountsByDoctor = async (req, res) => {
   const { doctorId } = req.params;
-  
+
   try {
     // Get all completed appointments for this doctor with their payment status
     const query = `
@@ -54,9 +54,9 @@ const getPaymentCountsByDoctor = async (req, res) => {
       LEFT JOIN payments p ON a.appointment_id = p.appointment_id
       WHERE a.doctor_id = $1 AND a.status = 'completed'
     `;
-    
+
     const result = await pool.query(query, [doctorId]);
-    
+
     // Count paid and unpaid
     const counts = result.rows.reduce((acc, row) => {
       if (row.payment_status === 'paid') {
@@ -66,7 +66,7 @@ const getPaymentCountsByDoctor = async (req, res) => {
       }
       return acc;
     }, { paid: 0, unpaid: 0 });
-    
+
     res.status(200).json(counts);
   } catch (err) {
     console.error("Get payment counts error:", err);
@@ -112,7 +112,7 @@ const getAppointmentsByPaymentStatus = async (req, res) => {
         ORDER BY a.appointment_date ASC, a.appointment_time ASC
       `;
     } else {
-    // UNPAID
+      // UNPAID
       query = `
         SELECT 
           a.*,
@@ -189,105 +189,54 @@ const getPaymentByAppointment = async (req, res) => {
   }
 };
 
-
 /**
- * @desc Get revenue chart data for a doctor using PostgreSQL function
- * @route GET /api/payments/doctor/:doctorId/revenue-chart
+ * @desc    Get STATIC revenue statistics for a doctor
+ * @route   GET /api/payments/doctor/:doctorId/static-stats
  */
-const getRevenueChart = async (req, res) => {
-  const { doctorId } = req.params;
-  const { range, startDate, endDate } = req.query;
-
-  // Begin transaction
-  const client = await pool.connect();
-
-  try {
-    await client.query('BEGIN');
-
-    console.log('Fetching revenue chart for doctor:', doctorId, 'with range:', range);
-
-    const result = await client.query(
-      'SELECT * FROM get_doctor_revenue_chart($1, $2, $3, $4)',
-      [doctorId, range || 'month', startDate || null, endDate || null]
-    );
-
-    console.log('Revenue chart query result:', result.rows.length, 'rows');
-
-    // Process the results to match your frontend expectations
-    const chartData = {
-      labels: result.rows.map(row => row.period),
-      values: result.rows.map(row => parseFloat(row.revenue || 0)),
-      total: result.rows.length > 0 ? parseFloat(result.rows[0].total_revenue || 0) : 0
-    };
-
-    await client.query('COMMIT');
-    
-    res.status(200).json(chartData);
-
-  } catch (err) {
-    await client.query('ROLLBACK');
-    console.error("Get revenue chart error:", err);
-    
-    // Send more detailed error information
-    res.status(500).json({ 
-      error: 'Server error while generating revenue chart',
-      details: err.message,
-      code: err.code
-    });
-  } finally {
-    client.release();
-  }
+const getStaticRevenueStats = async (req, res) => {
+    const { doctorId } = req.params;
+    try {
+        // SIMPLIFIED: pool.query handles the connection automatically for a single query.
+        const result = await pool.query(
+            'SELECT * FROM get_doctor_static_revenue_stats($1)',
+            [doctorId]
+        );
+        res.status(200).json(result.rows[0] || {});
+    } catch (err) {
+        console.error("Error fetching static revenue stats:", err);
+        res.status(500).json({ error: 'Server error while fetching static stats' });
+    }
 };
 
 /**
- * @desc Get revenue statistics for a doctor using PostgreSQL function
- * @route GET /api/payments/doctor/:doctorId/revenue-stats
+ * @desc    Get DYNAMIC, range-based revenue data for a doctor's chart
+ * @route   GET /api/payments/doctor/:doctorId/revenue-chart
  */
-const getRevenueStats = async (req, res) => {
-  const { doctorId } = req.params;
-  const { range, startDate, endDate } = req.query;
+const getDoctorRangeBasedRevenue = async (req, res) => {
+    const { doctorId } = req.params;
+    const { range, startDate, endDate } = req.query;
 
-  // Begin transaction
-  const client = await pool.connect();
-  
-  try {
-    await client.query('BEGIN');
+    try {
+        // SIMPLIFIED: No need for BEGIN/COMMIT for a SELECT.
+        const result = await pool.query(
+            'SELECT * FROM get_doctor_range_based_revenue($1, $2, $3, $4)',
+            [doctorId, range || 'month', startDate || null, endDate || null]
+        );
+        
+        // This data processing part is PERFECT.
+        const chartData = {
+            labels: result.rows.map(row => row.period),
+            data: result.rows.map(row => parseFloat(row.revenue)),
+            total: result.rows.length > 0 ? parseFloat(result.rows[0].total_revenue) : 0
+        };
 
-    console.log('Fetching revenue stats for doctor:', doctorId, 'with range:', range);
-
-    const result = await client.query(
-      'SELECT * FROM get_doctor_revenue_stats($1, $2, $3, $4)',
-      [doctorId, range || 'month', startDate || null, endDate || null]
-    );
-
-    await client.query('COMMIT');
-    
-    // Ensure we return valid numbers
-    const stats = result.rows[0] || {};
-    const cleanedStats = {
-      today: parseFloat(stats.today || 0),
-      this_week: parseFloat(stats.this_week || 0),
-      this_month: parseFloat(stats.this_month || 0),
-      this_year: parseFloat(stats.this_year || 0),
-      today_change: parseFloat(stats.today_change || 0),
-      week_change: parseFloat(stats.week_change || 0),
-      month_change: parseFloat(stats.month_change || 0),
-      year_change: parseFloat(stats.year_change || 0)
-    };
-
-    res.status(200).json(cleanedStats);
-
-  } catch (err) {
-    await client.query('ROLLBACK');
-    console.error("Get revenue stats error:", err);
-    res.status(500).json({ 
-      error: 'Server error while fetching revenue statistics',
-      details: err.message,
-      code: err.code
-    });
-  } finally {
-    client.release();
-  }
+        res.status(200).json(chartData);
+    } catch (err) {
+        console.error("Get range-based revenue error:", err);
+        res.status(500).json({ 
+            error: 'Server error while fetching range-based revenue',
+        });
+    }
 };
 
 module.exports = {
@@ -297,6 +246,6 @@ module.exports = {
   getPaymentByAppointment,
   getPaymentCountsByDoctor,
   getAppointmentsByPaymentStatus,
-  getRevenueStats,
-  getRevenueChart,
+  getStaticRevenueStats,
+  getDoctorRangeBasedRevenue,
 };
