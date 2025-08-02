@@ -139,7 +139,7 @@ const DoctorsPage = ({ user, onLogout }) => {
   }, [searchParams]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50">
+    <div className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-100 to-cyan-100">
       <DashboardNavigation
         user={user}
         activeTab="doctors"

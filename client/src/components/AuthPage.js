@@ -302,11 +302,11 @@ async function handleLogin(e) {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Full Name
+                     Username
                     </label>
                     <InputField
                       type="text"
-                      placeholder="Enter your full name"
+                      placeholder="Enter your username"
                       value={regName}
                       onChange={e => setRegName(e.target.value)}
                       icon={User}

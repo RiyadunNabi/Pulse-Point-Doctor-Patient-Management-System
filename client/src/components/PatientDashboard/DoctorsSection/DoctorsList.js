@@ -62,10 +62,10 @@ const DoctorsList = ({ doctors = [], loading, user }) => {
         <>
             <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8">
                 <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-slate-800">Available Doctors</h2>
+                    {/* <h2 className="text-2xl font-bold text-slate-800">Available Doctors</h2>
                     <div className="text-sm text-slate-500">
                         {doctors.length} doctor{doctors.length !== 1 ? 's' : ''} available
-                    </div>
+                    </div> */}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

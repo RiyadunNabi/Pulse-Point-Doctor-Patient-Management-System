@@ -123,8 +123,8 @@ function EditHealthLogModal({ isOpen, onClose, patientId, onUpdate, existingLog 
     <Modal 
       isOpen={isOpen} 
       onClose={handleClose} 
-      title={existingLog ? "Update Health Log" : "Add Health Log"} 
-      size="lg"
+      title={existingLog ? "Update Health Log" : "Add New Health Log"} 
+      size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Error/Success Messages */}

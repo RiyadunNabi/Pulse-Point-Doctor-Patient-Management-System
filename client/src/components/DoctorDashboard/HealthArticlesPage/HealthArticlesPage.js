@@ -91,7 +91,7 @@ const HealthArticlesPage = ({ user, onLogout }) => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50">
+        <div className="min-h-screen bg-gradient-to-br from-cyan-100 via-sky-100 to-blue-50">
             <DoctorNavigation user={user} onLogout={onLogout} />
             
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

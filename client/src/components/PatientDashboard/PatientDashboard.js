@@ -104,7 +104,7 @@ function PatientDashboard({ user, onLogout }) {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50">
+        <div className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-100 to-cyan-100">
             {/* Background Decorative Elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-r from-sky-200/20 to-cyan-200/20 rounded-full blur-3xl"></div>
