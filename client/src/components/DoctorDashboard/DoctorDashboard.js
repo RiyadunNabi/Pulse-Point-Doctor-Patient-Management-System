@@ -2,77 +2,47 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-import { Bell, LogOut, User, Stethoscope } from 'lucide-react';
+import { Stethoscope } from 'lucide-react';
 import DoctorNavigation from './shared/DoctorNavigation';
 import DoctorProfileCard from './DoctorProfileCard';
 import AppointmentStatsSection from './AppointmentStatsSection';
-import RevenueSection from './RevenueSection';
 import RatingsSection from './RatingsSection';
 import ScheduleSection from './ScheduleSection';
-import PatientAnalyticsSection from './PatientAnalyticsSection';
 import UpcomingAppointmentsSection from './UpcomingAppointmentsSection';
-import QuickStatsWidget from './QuickStatsWidget';
-import HealthInsightsWidget from './HealthInsightsWidget';
-import MedicalInsightsSection from './MedicalInsightsSection';
-import ManageAppointments from './ManageAppointments/ManageAppointments';
-
-// Pulse Point Logo Component (reused from PatientDashboard)
-const PulsePointLogo = ({ className = "w-8 h-8" }) => (
-    <div className={`${className} flex items-center justify-center`}>
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-            <defs>
-                <linearGradient id="pulseGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#38bdf8" />
-                    <stop offset="100%" stopColor="#22d3ee" />
-                </linearGradient>
-            </defs>
-            <circle cx="50" cy="50" r="45" fill="url(#pulseGradient)" />
-            <path
-                d="M25 50 L35 50 L40 35 L45 65 L50 40 L55 60 L60 45 L65 50 L75 50"
-                stroke="white"
-                strokeWidth="3"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            />
-            <circle cx="50" cy="50" r="4" fill="white" />
-        </svg>
-    </div>
-);
 
 function DoctorDashboard({ user, onLogout }) {
     const navigate = useNavigate();
     // State management
     const [doctor, setDoctor] = useState(null);
     const [appointments, setAppointments] = useState([]);
-    const [revenueData, setRevenueData] = useState(null);
+    // const [revenueData, setRevenueData] = useState(null);
     const [ratingsData, setRatingsData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [notifications] = useState(5);
+    // const [notifications] = useState(5);
     const [scheduleData, setScheduleData] = useState([]);
     const [showManageAppointments, setShowManageAppointments] = useState(false);
 
-    // Updated navigation tabs with routing
-    const navTabs = [
-        { id: 'dashboard', label: 'Dashboard', path: '/doctordashboard', active: true },
-        { id: 'appointments', label: 'Appointments', path: '/doctor-appointments', active: false },
-        { id: 'patients', label: 'My Patients', path: '/doctor-patients', active: false },
-        { id: 'schedule', label: 'Schedule', path: '/doctor-schedule', active: false },
-        { id: 'articles', label: 'Health Articles', path: '/doctor-articles', active: false },
-    ];
+    // // Updated navigation tabs with routing
+    // const navTabs = [
+    //     { id: 'dashboard', label: 'Dashboard', path: '/doctordashboard', active: true },
+    //     { id: 'appointments', label: 'Appointments', path: '/doctor-appointments', active: false },
+    //     { id: 'patients', label: 'My Patients', path: '/doctor-patients', active: false },
+    //     { id: 'schedule', label: 'Schedule', path: '/doctor-schedule', active: false },
+    //     { id: 'articles', label: 'Health Articles', path: '/doctor-articles', active: false },
+    // ];
 
-    // Handle tab navigation
-    const handleTabClick = (tab) => {
-        if (tab.id === 'appointments') {
-            navigate('/doctor-appointments');
-        } else if (tab.id === 'dashboard') {
-            navigate('/doctordashboard');
-        } else if (tab.id === 'patients') {
-            navigate('/doctor-patients');
-        }
-        // Add other tab navigations as needed
-    };
+    // // Handle tab navigation
+    // const handleTabClick = (tab) => {
+    //     if (tab.id === 'appointments') {
+    //         navigate('/doctor-appointments');
+    //     } else if (tab.id === 'dashboard') {
+    //         navigate('/doctordashboard');
+    //     } else if (tab.id === 'patients') {
+    //         navigate('/doctor-patients');
+    //     }
+    //     // Add other tab navigations as needed
+    // };
 
     // User validation
     useEffect(() => {
@@ -149,17 +119,17 @@ function DoctorDashboard({ user, onLogout }) {
         }
     }, [user?.doctor_id]);
 
-    // Fetch revenue data
-    const fetchRevenueData = useCallback(async () => {
-        if (!user?.doctor_id) return;
+    // // Fetch revenue data
+    // const fetchRevenueData = useCallback(async () => {
+    //     if (!user?.doctor_id) return;
 
-        try {
-            const response = await axios.get(`/api/payments/doctor/${user.doctor_id}/revenue`);
-            setRevenueData(response.data);
-        } catch (error) {
-            console.error('Error fetching revenue data:', error);
-        }
-    }, [user?.doctor_id]);
+    //     try {
+    //         const response = await axios.get(`/api/payments/doctor/${user.doctor_id}/revenue`);
+    //         setRevenueData(response.data);
+    //     } catch (error) {
+    //         console.error('Error fetching revenue data:', error);
+    //     }
+    // }, [user?.doctor_id]);
 
     // Fetch ratings data
     const fetchRatingsData = useCallback(async () => {
@@ -192,13 +162,13 @@ function DoctorDashboard({ user, onLogout }) {
         if (user?.doctor_id) {
             fetchDoctorData();
             fetchAppointments();
-            fetchRevenueData();
+            // fetchRevenueData();
             fetchRatingsData();
             fetchScheduleData(); // Add this line
         } else {
             setLoading(false);
         }
-    }, [fetchDoctorData, fetchAppointments, fetchRevenueData, fetchRatingsData, fetchScheduleData, user?.doctor_id]);
+    }, [fetchDoctorData, fetchAppointments, fetchRatingsData, fetchScheduleData, user?.doctor_id]);
 
 
     // Handle doctor profile update
@@ -209,13 +179,6 @@ function DoctorDashboard({ user, onLogout }) {
         } else {
             console.error('Invalid doctor update data:', updatedDoctor);
         }
-    };
-
-    const handleNavigateToManageAppointments = () => {
-        setShowManageAppointments(true);
-    };
-    const handleBackFromManageAppointments = () => {
-        setShowManageAppointments(false);
     };
 
     // Error handling
@@ -279,23 +242,18 @@ function DoctorDashboard({ user, onLogout }) {
             </div>
         );
     }
-    if (showManageAppointments) {
-        return (
-            <ManageAppointments
-                doctorId={user.doctor_id}
-                onBack={handleBackFromManageAppointments}
-            />
-        );
-    }
+    // if (showManageAppointments) {
+    //     return (
+    //         <ManageAppointments
+    //             doctorId={user.doctor_id}
+    //             onBack={handleBackFromManageAppointments}
+    //         />
+    //     );
+    // }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-cyan-100 via-sky-100 to-blue-50">
-            {/* Background Decorative Elements */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-r from-sky-200/20 to-cyan-200/20 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-blue-200/20 to-sky-200/20 rounded-full blur-3xl"></div>
-            </div>
-            
+
             <DoctorNavigation user={user} onLogout={onLogout} />
 
 
@@ -319,9 +277,10 @@ function DoctorDashboard({ user, onLogout }) {
                 </div>
 
                 {/* Upcoming Appointments & Schedule Management */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8" style={{ gridAutoRows: '1fr' }}>
+
                     {/* Left: Upcoming Appointments */}
-                    <div>
+                    <div className="flex flex-col">
                         <UpcomingAppointmentsSection
                             appointments={appointments}
                             doctorId={user?.doctor_id}
@@ -329,83 +288,23 @@ function DoctorDashboard({ user, onLogout }) {
                     </div>
 
                     {/* Right: Schedule Management */}
-                    <div>
+                    <div className="flex flex-col">
                         <ScheduleSection
                             doctorId={user?.doctor_id}
                         />
                     </div>
                 </div>
 
-                {/* Revenue Analytics with Side Widget */}
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-8">
-                    {/* Left: Quick Stats Widget (1/4 width) */}
-                    <div className="lg:col-span-1">
-                        <QuickStatsWidget
-                            doctorId={user?.doctor_id}
-                        />
-                    </div>
-
-                    {/* Right: Revenue Analytics with Charts (3/4 width) */}
-                    <div className="lg:col-span-3">
-                        <RevenueSection
-                            revenueData={revenueData}
-                            doctorId={user?.doctor_id}
-                            layout="expanded" // New prop for larger chart area
-                        />
-                    </div>
-                </div>
-
-                {/* Patient Analytics with Side Widget */}
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-8">
-                    {/* Left: Health Insights Widget (1/4 width) */}
-                    <div className="lg:col-span-1">
-                        <HealthInsightsWidget
-                            doctorId={user?.doctor_id}
-                        />
-                    </div>
-
-                    {/* Right: Patient Analytics with Charts (3/4 width) */}
-                    <div className="lg:col-span-3">
-                        <PatientAnalyticsSection
-                            doctorId={user?.doctor_id}
-                            layout="expanded" // New prop for chart display
-                        />
-                    </div>
-                </div>
-
-                {/* Bottom Row - Reviews & Additional Feature */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-                    {/* Left: Ratings and Reviews (Half Width) */}
+                <div className="grid grid-cols-1 lg:grid-cols-1 gap-8 mt-8">
                     <RatingsSection
                         ratingsData={ratingsData}
                         doctorId={user?.doctor_id}
                     />
-
-                    {/* Right: Medical Insights Dashboard (Half Width) */}
-                    <MedicalInsightsSection
-                        doctorId={user?.doctor_id}
-                    />
                 </div>
+
             </div>
         </div>
     );
 }
 
 export default DoctorDashboard;
-
-
-/*
-{Bottom Row - Reviews & Additional Feature }
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-        {/* Left: Ratings and Reviews (Half Width)}
-        <RatingsSection 
-            ratingsData={ratingsData} 
-            doctorId={user?.doctor_id}
-        />
-
-        {/* Right: Medical Insights Dashboard (Half Width) }
-        <MedicalInsightsSection 
-            doctorId={user?.doctor_id}
-        />
-    </div>
-*/
