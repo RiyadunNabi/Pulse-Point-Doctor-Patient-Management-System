@@ -100,28 +100,20 @@ function RevenueChart({ data, timeFilter }) {
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/50 shadow-lg">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-2">
-          <TrendingUp className="w-5 h-5 text-sky-600" />
-          <h3 className="text-lg font-semibold text-slate-800">
-            {getTimeFilterLabel()}
-          </h3>
+    <>
+        {/* Revenue Chart */}
+        <div className="h-64">
+            <Line data={chartData} options={chartOptions} />
         </div>
-        
-        <div className="text-right">
-          <p className="text-sm text-slate-600">Total Period Revenue</p>
-          <p className="text-xl font-bold text-slate-800">
-            ${data?.total?.toLocaleString() || '0'}
-          </p>
-        </div>
-      </div>
 
-      <div className="h-80">
-        <Line options={chartOptions} data={chartData} />
-      </div>
-    </div>
-  );
+        {/* Period Information */}
+        <div className="mt-4 text-center">
+            <p className="text-sm text-slate-500">
+                {getTimeFilterLabel()}
+            </p>
+        </div>
+    </>
+);
 }
 
 export default RevenueChart;

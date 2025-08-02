@@ -62,43 +62,37 @@ function DoctorRevenuePage({ user, onLogout }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-100 via-sky-100 to-blue-50">
-      <DoctorNavigation user={user} onLogout={onLogout} />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-800">Revenue Dashboard</h1>
-          <p className="text-slate-600 mt-2">Track your earnings and financial performance</p>
-        </div>
+    <>
+        <DoctorNavigation user={user} onLogout={onLogout} />
+        <main className="flex-1 bg-sky-50/50 p-4 sm:p-6 lg:p-8">
+            <div className="max-w-6xl mx-auto">
+                {/* Use the new design's container and title */}
+                <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/50 p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-xl font-bold text-slate-800">Revenue Analytics</h3>
+                        {/* The DateRangeFilter will go here */}
+                        <DateRangeFilter
+                            selectedRange={dateRange}
+                            customRange={customDateRange}
+                            onRangeChange={handleDateRangeChange}
+                        />
+                    </div>
 
-        {/* Date Range Filter */}
-        <div className="mb-8">
-          <DateRangeFilter
-            selectedRange={dateRange}
-            customRange={customDateRange}
-            onRangeChange={handleDateRangeChange}
-          />
-        </div>
-
-        {/* Revenue Stats Cards */}
-        <div className="mb-8">
-          <RevenueStatsCards stats={revenueStats} />
-        </div>
-
-        {/* Chart */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Revenue Chart */}
-          <div className="lg:col-span-2">
-            <RevenueChart 
-              data={chartData} 
-              timeFilter={dateRange}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
+                    {loading ? (
+                        <div className="text-center p-8">Loading revenue data...</div>
+                    ) : error ? (
+                        <div className="text-center p-8 text-red-500">{error}</div>
+                    ) : (
+                        <>
+                            {/* Pass both revenueStats and chartData to the cards component */}
+                            <RevenueStatsCards stats={revenueStats} chartData={chartData} />
+                            <RevenueChart data={chartData} timeFilter={dateRange} />
+                        </>
+                    )}
+                </div>
+            </div>
+        </main>
+    </>
+);
+};
 export default DoctorRevenuePage;
