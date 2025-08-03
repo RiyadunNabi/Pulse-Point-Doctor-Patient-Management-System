@@ -1,35 +1,38 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import clsx from 'clsx';
-import { Mail, Lock, User, Heart, Activity } from 'lucide-react';
+import { Mail, Lock, User, Heart, Activity, ChevronLeft } from 'lucide-react';
 import InputField from './InputField';
+import PulsePointLogo from './WelcomePage/PulsePointLogo';
+import { useNavigate } from 'react-router-dom';
 
 const roles = ['patient', 'doctor'];
 
-const PulsePointLogo = ({ className = "w-12 h-12" }) => (
-  <div className={`${className} flex items-center justify-center`}>
-    <svg viewBox="0 0 100 100" className="w-full h-full">
-      <defs>
-        <linearGradient id="pulseGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#0ea5e9" />
-          <stop offset="100%" stopColor="#0284c7" />
-        </linearGradient>
-      </defs>
-      <circle cx="50" cy="50" r="45" fill="url(#pulseGradient)" />
-      <path
-        d="M25 50 L35 50 L40 35 L45 65 L50 40 L55 60 L60 45 L65 50 L75 50"
-        stroke="white"
-        strokeWidth="3"
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="50" cy="50" r="4" fill="white" />
-    </svg>
-  </div>
-);
+// const PulsePointLogo = ({ className = "w-12 h-12" }) => (
+//   <div className={`${className} flex items-center justify-center`}>
+//     <svg viewBox="0 0 100 100" className="w-full h-full">
+//       <defs>
+//         <linearGradient id="pulseGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+//           <stop offset="0%" stopColor="#0ea5e9" />
+//           <stop offset="100%" stopColor="#0284c7" />
+//         </linearGradient>
+//       </defs>
+//       <circle cx="50" cy="50" r="45" fill="url(#pulseGradient)" />
+//       <path
+//         d="M25 50 L35 50 L40 35 L45 65 L50 40 L55 60 L60 45 L65 50 L75 50"
+//         stroke="white"
+//         strokeWidth="3"
+//         fill="none"
+//         strokeLinecap="round"
+//         strokeLinejoin="round"
+//       />
+//       <circle cx="50" cy="50" r="4" fill="white" />
+//     </svg>
+//   </div>
+// );
 
 function AuthPage({ onLogin }) {
+  const navigate = useNavigate();
   const [mode, setMode] = useState('patient');
   const [view, setView] = useState('login');
   const [loading, setLoading] = useState(false);
@@ -138,11 +141,11 @@ async function handleLogin(e) {
             
             <div className="relative z-10 text-center">
               <div className="flex justify-center mb-8">
-                <PulsePointLogo className="w-24 h-24" />
+                <PulsePointLogo className="w-28 h-28" />
               </div>
-              <h1 className="text-5xl font-bold mb-4">Pulse Point</h1>
+              <h1 className="text-5xl font-bold mb-4">PulsePoint</h1>
               <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-                Advanced Doctor-Patient<br />Management System
+                Advanced Doctor-Patient<br />Appointment Management System
               </p>
               <div className="space-y-3 text-blue-100">
                 <div className="flex items-center justify-center space-x-3">
@@ -154,6 +157,17 @@ async function handleLogin(e) {
                   <span>Professional Healthcare Management</span>
                 </div>
               </div>
+
+              {/* Back to Welcome button, placed right after the four branding lines */}
+              <button
+                type="button"
+                onClick={() => navigate('/welcome')}
+                className="text-white hover:text-cyan-200 font-medium mt-20 flex items-center justify-center relative left-10 "
+              >
+                <ChevronLeft className="w-5 h-5 mr-2" />
+                Back to WelcomePage
+              </button>
+
             </div>
           </div>
 
@@ -397,7 +411,7 @@ async function handleLogin(e) {
             {/* Footer */}
             <div className="mt-8 text-center">
               <p className="text-xs text-slate-500 font-medium">
-                © 2024 Pulse Point Health. All rights reserved.
+                © 2025 PulsePoint. All rights are Not Reserved -_-
               </p>
               <div className="mt-2 flex justify-center space-x-6 text-xs">
                 <button className="text-slate-500 hover:text-sky-600 font-medium transition-colors duration-200">Help</button>

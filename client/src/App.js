@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import WelcomePage from './components/WelcomePage/WelcomePage';
 import AuthPage from './components/AuthPage';
 //patient
 import PatientDashboard from './components/PatientDashboard/PatientDashboard';
@@ -121,6 +122,10 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
+          
+          <Route path="/welcome" element={<WelcomePage />} />
+          
+          
           <Route
             path="/auth"
             element={
@@ -260,7 +265,7 @@ function App() {
             }
           />
 
-          <Route
+          {/* <Route
             path="/"
             element={
               user ? (
@@ -269,11 +274,16 @@ function App() {
                 <Navigate to="/auth" replace />
               )
             }
+          /> */}
+
+          <Route
+            path="/"
+            element={<WelcomePage/>}
           />
 
           <Route
             path="*"
-            element={<Navigate to="/auth" replace />}
+            element={<Navigate to="/" replace />}
           />
         </Routes>
       </div>

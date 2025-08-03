@@ -17,6 +17,10 @@ function EditHealthLogModal({ isOpen, onClose, patientId, onUpdate, existingLog 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  // Only require all fields except notes
+  const requiredFields = ['weight', 'systolic', 'diastolic', 'heart_rate', 'blood_sugar', 'sleep_hours'];
+  const isFormValid = requiredFields.every(field => formData[field] !== '');
+
   // Populate form fields when modal opens or existing log changes
   useEffect(() => {
     if (isOpen) {
@@ -56,6 +60,11 @@ function EditHealthLogModal({ isOpen, onClose, patientId, onUpdate, existingLog 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Prevent submission if required fields are missing
+    if (!isFormValid) {
+      setError('Please complete all required fields before submitting.');
+      return;
+    }
     setLoading(true);
     setError('');
     setSuccess('');
@@ -73,19 +82,25 @@ function EditHealthLogModal({ isOpen, onClose, patientId, onUpdate, existingLog 
 
     try {
       let response;
+
+      const payload = {
+        ...formData,
+        patient_id: patientId,
+        notes: formData.notes || null
+      };
       
       if (existingLog) {
         // Update existing health log
-        response = await axios.patch(`/api/health-logs/${existingLog.log_id}`, formData);
+        response = await axios.patch(`/api/health-logs/${existingLog.log_id}`, payload);
         console.log('Health log updated:', response.data);
         setSuccess('Health log updated successfully!');
       } else {
         // Create new health log
-        const logData = {
-          ...formData,
-          patient_id: patientId
-        };
-        response = await axios.post('/api/health-logs', logData);
+        // const logData = {
+        //   ...formData,
+        //   patient_id: patientId
+        // };
+        response = await axios.post('/api/health-logs', payload);
         console.log('Health log created:', response.data);
         setSuccess('Health log added successfully!');
       }
