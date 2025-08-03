@@ -49,7 +49,7 @@ function HealthLogSection({ healthLogs, onUpdate, patientId }) {
   return (
     <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/50 p-6">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-bold text-slate-800">Health Summary</h3>
+        <h3 className="text-xl font-bold text-slate-800">Health Log</h3>
         <button
           onClick={handleAddLog}
           className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white rounded-lg shadow-md transition-all duration-200 text-sm"

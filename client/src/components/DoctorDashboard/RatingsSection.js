@@ -2,14 +2,11 @@ import React from 'react';
 import { Star, Award } from 'lucide-react';
 
 function RatingsSection({ ratingsData = [] }) {
-    if (ratingsData.length === 0) {
-        return <p className="text-sm text-slate-500">No reviews yet.</p>;
-    }
 
     // 1) Total & average
     const totalReviews = ratingsData.length;
-    const averageRating =
-      ratingsData.reduce((sum, r) => sum + (r.ratings || 0), 0) / totalReviews;
+    const averageRating = totalReviews ?
+      ratingsData.reduce((sum, r) => sum + (r.ratings || 0), 0) / totalReviews : 0;
 
     // 2) Distribution
     const ratingDistribution = [5,4,3,2,1].reduce((acc, star) => {

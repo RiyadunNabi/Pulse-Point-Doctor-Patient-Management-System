@@ -276,10 +276,10 @@ function DoctorDashboard({ user, onLogout }) {
                     />
                 </div>
 
-                {/* Upcoming Appointments & Schedule Management */}
+                {/* Upcoming Appointments & Schedule Management
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8" style={{ gridAutoRows: '1fr' }}>
 
-                    {/* Left: Upcoming Appointments */}
+                    Left: Upcoming Appointments
                     <div className="flex flex-col">
                         <UpcomingAppointmentsSection
                             appointments={appointments}
@@ -287,12 +287,20 @@ function DoctorDashboard({ user, onLogout }) {
                         />
                     </div>
 
-                    {/* Right: Schedule Management */}
+                    Right: Schedule Management
                     <div className="flex flex-col">
                         <ScheduleSection
                             doctorId={user?.doctor_id}
                         />
                     </div>
+                </div> */}
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 items-stretch">
+                    <UpcomingAppointmentsSection
+                        appointments={appointments}
+                        doctorId={user?.doctor_id}
+                    />
+                    <ScheduleSection doctorId={user?.doctor_id} />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-1 gap-8 mt-8">
