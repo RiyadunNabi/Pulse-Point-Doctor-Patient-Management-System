@@ -6,7 +6,11 @@ const authenticateToken = require('./middleware/authMiddleware');
 
 const path = require('path');
 const app = express();
-const PORT = 5000;
+
+// const PORT = 5000;
+// Set the port from environment variable or default to 5000
+const PORT = process.env.PORT || 5000;
+
 const setupSwagger = require('./swagger');
 setupSwagger(app);
 
