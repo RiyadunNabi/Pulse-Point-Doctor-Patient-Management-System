@@ -9,6 +9,7 @@ import {
     Share,
     ExternalLink
 } from 'lucide-react';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const PatientArticleCard = ({ article }) => {
     const [showFullContent, setShowFullContent] = useState(false);
@@ -134,7 +135,9 @@ const PatientArticleCard = ({ article }) => {
                 <div className="px-6 mt-4">
                     <div className="relative group">
                         <img 
+                            // src={`http://localhost:5000/uploads/article_images/${safeArticle.image_path.replace(/^.*[\\/]/, '')}`}
                             src={`http://localhost:5000/uploads/article_images/${safeArticle.image_path.replace(/^.*[\\/]/, '')}`}
+
                             alt={safeArticle.title}
                             className="w-full max-h-96 object-cover rounded-lg shadow-sm cursor-pointer transition-transform duration-300 hover:scale-[1.02]"
                             onError={(e) => {

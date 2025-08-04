@@ -540,7 +540,7 @@ BEGIN
     LEFT JOIN "user" u ON d.user_id = u.user_id AND u.is_active = true
     WHERE dep.department_name != 'Unassigned'
     GROUP BY dep.department_id, dep.department_name, dep.description
-    HAVING COUNT(d.doctor_id) > 0
+    -- HAVING COUNT(d.doctor_id) > 0
     ORDER BY COUNT(d.doctor_id) DESC, dep.department_name ASC;
 END;
 $$ LANGUAGE plpgsql;
@@ -677,41 +677,8 @@ $$ LANGUAGE plpgsql;
 DROP FUNCTION IF EXISTS get_doctor_patients_with_stats(integer,text,text,date,date,text,text,integer,integer);
 
 -- Create the corrected function
-CREATE OR REPLACE FUNCTION get_doctor_patients_with_stats(
-    p_doctor_id INTEGER,
-    p_search TEXT DEFAULT NULL,
-    p_gender TEXT DEFAULT NULL,
-    p_from_date DATE DEFAULT NULL,
-    p_to_date DATE DEFAULT NULL,
-    p_sort_by TEXT DEFAULT 'last_appointment',
-    p_sort_order TEXT DEFAULT 'desc',
-    p_page INTEGER DEFAULT 1,
-    p_limit INTEGER DEFAULT 12
-)
-RETURNS TABLE(
-    patient_id INTEGER,
-    first_name VARCHAR,
-    last_name VARCHAR,
-    gender VARCHAR,
-    date_of_birth DATE,
-    phone_no VARCHAR,
-    address TEXT,
-    email VARCHAR,
-    blood_group VARCHAR,
-    health_condition TEXT,
-    total_appointments BIGINT,
-    completed_appointments BIGINT,
-    cancelled_appointments BIGINT,
-    pending_appointments BIGINT,
-    last_appointment_date DATE,
-    last_appointment_time TIME,
-    last_appointment_status VARCHAR,
-    first_appointment_date DATE,
-    patient_created_at TIMESTAMP,
-    patient_updated_at TIMESTAMP,
-    age INTEGER,
-    total_records BIGINT
-) AS $$
+CREATE OR REPLACE FUNCTION "public"."get_doctor_patients_with_stats"("p_doctor_id" int4, "p_search" text=NULL::text, "p_gender" text=NULL::text, "p_from_date" date=NULL::date, "p_to_date" date=NULL::date, "p_sort_by" text='last_appointment'::text, "p_sort_order" text='desc'::text, "p_page" int4=1, "p_limit" int4=12)
+  RETURNS TABLE("patient_id" int4, "first_name" varchar, "last_name" varchar, "gender" varchar, "date_of_birth" date, "phone_no" varchar, "address" text, "email" varchar, "blood_group" varchar, "health_condition" text, "total_appointments" int8, "completed_appointments" int8, "cancelled_appointments" int8, "pending_appointments" int8, "last_appointment_date" date, "last_appointment_time" time, "last_appointment_status" varchar, "first_appointment_date" date, "patient_created_at" timestamp, "patient_updated_at" timestamp, "age" int4, "total_records" int8) AS $BODY$
 BEGIN
     RETURN QUERY
     SELECT 
@@ -730,7 +697,6 @@ BEGIN
         COUNT(a.appointment_id) FILTER (WHERE a.status = 'cancelled') as cancelled_appointments,
         COUNT(a.appointment_id) FILTER (WHERE a.status = 'pending') as pending_appointments,
         MAX(a.appointment_date) as last_appointment_date,
-        -- Fixed: Fully qualify column references in subqueries
         (SELECT a2.appointment_time FROM appointment a2
          WHERE a2.patient_id = p.patient_id AND a2.doctor_id = p_doctor_id 
          ORDER BY a2.appointment_date DESC, a2.appointment_time DESC LIMIT 1) as last_appointment_time,
@@ -760,11 +726,12 @@ BEGIN
         LOWER(p.phone_no) LIKE LOWER('%' || p_search || '%')
     )
     AND (p_gender IS NULL OR p.gender = p_gender)
-    AND (p_from_date IS NULL OR MAX(a.appointment_date) >= p_from_date)
-    AND (p_to_date IS NULL OR MIN(a.appointment_date) <= p_to_date)
     GROUP BY p.patient_id, p.first_name, p.last_name, p.gender, p.date_of_birth, 
              p.phone_no, p.address, u.email, p.blood_group, p.health_condition,
              p.created_at, p.updated_at
+    -- MOVED: Aggregate conditions to HAVING clause
+    HAVING (p_from_date IS NULL OR MAX(a.appointment_date) >= p_from_date)
+    AND (p_to_date IS NULL OR MIN(a.appointment_date) <= p_to_date)
     ORDER BY
         CASE 
             WHEN p_sort_by = 'last_appointment' AND p_sort_order = 'desc' THEN 
@@ -793,7 +760,10 @@ BEGIN
         p.patient_id ASC
     LIMIT p_limit OFFSET ((p_page - 1) * p_limit);
 END;
-$$ LANGUAGE plpgsql;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100
+  ROWS 1000
 
 
 -- Function to get daily appointment counts for analytics (last 7 days)

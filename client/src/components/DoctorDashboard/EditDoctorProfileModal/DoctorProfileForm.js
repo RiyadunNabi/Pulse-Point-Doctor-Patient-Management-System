@@ -5,7 +5,7 @@ import { User, Phone, MapPin, FileText, DollarSign, Award, Building, Mail, Alert
 import InputField from '../../shared/InputField';
 
 function DoctorProfileForm({ formData, onChange, departments, doctor }) {
-    const genders = ['male', 'female', 'other'];
+    const genders = ['Male', 'Female'];
 
     // ✅ Filter out "Unassigned" department and create options
     const departmentOptions = departments
