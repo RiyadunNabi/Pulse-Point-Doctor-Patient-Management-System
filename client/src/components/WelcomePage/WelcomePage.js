@@ -436,12 +436,12 @@ const WelcomePage = () => {
                             <h3 className="developer-name">Md. Riyadun Nabi (Riyad)</h3>
                             <div className="developer-details">
                                 <div className="detail-item">
-                                    <span className="detail-label">Roll No:</span>
+                                    {/* <span className="detail-label">Roll No:</span> */}
                                     {/* <span>2205076</span> */}
                                 </div>
                                 <div className="detail-item">
                                     <GraduationCap className="w-4 h-4" />
-                                    <span>BUET CSE Batch 2022</span>
+                                    <span>BUET CSE - 2022</span>
                                 </div>
                             </div>
                         </div>
@@ -450,12 +450,12 @@ const WelcomePage = () => {
                             <h3 className="developer-name">Fardin Fuad</h3>
                             <div className="developer-details">
                                 <div className="detail-item">
-                                    <span className="detail-label">Roll No:</span>
+                                    {/* <span className="detail-label">Roll No:</span> */}
                                     {/* <span>2205084</span> */}
                                 </div>
                                 <div className="detail-item">
                                     <GraduationCap className="w-4 h-4" />
-                                    <span>BUET CSE Batch 2022</span>
+                                    <span>BUET CSE - 2022</span>
                                 </div>
                             </div>
                         </div>
