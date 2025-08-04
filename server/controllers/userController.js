@@ -49,7 +49,8 @@ const createUser = async (req, res) => {
             `;
             const patientResult = await client.query(patientQuery, [
                 newUser.user_id,
-                username,
+                // username,
+                'Patient', // Default first name
                 '',
                 'male', // Default value - can be updated later
                 '1990-01-01' // Default value - can be updated later
@@ -63,9 +64,22 @@ const createUser = async (req, res) => {
                 ['Unassigned'] // or 'General Practice'
             );
 
-            if (defaultDeptResult.rows.length === 0) {
-                throw new Error('Default department "Unassigned" not found. Please ensure it exists.');
+            // if (defaultDeptResult.rows.length === 0) {
+            //     throw new Error('Default department "Unassigned" not found. Please ensure it exists.');
+            // }
+
+            let department_id;
+            if (deptRes.rows.length === 0) {
+                const newDept = await client.query(
+                    `INSERT INTO department (department_name, description)
+                    VALUES ($1, $2) RETURNING department_id`,
+                    ['Unassigned', 'Default catch-all department for new doctors']
+                );
+                department_id = newDept.rows[0].department_id;
+            } else {
+                department_id = deptRes.rows[0].department_id;
             }
+
 
             const doctorQuery = `
             INSERT INTO doctor (user_id, department_id, first_name, last_name, gender) 
@@ -75,7 +89,7 @@ const createUser = async (req, res) => {
             const doctorResult = await client.query(doctorQuery, [
                 newUser.user_id,
                 defaultDeptResult.rows[0].department_id,
-                username,
+                'Doctor', // Default first name
                 '', // last_name - can be updated later
                 'male' // Default gender - required field
             ]);
@@ -194,37 +208,3 @@ module.exports = {
     updateUser,
     deleteUser
 };
-
-/* 
-const pool = require("../db/connection");
-
-// GET all users
-const getUsers = async (req, res) => {
-  try {
-    const result = await pool.query("SELECT * FROM \"user\"");
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error fetching users:", err);
-    res.status(500).send("Error fetching users");
-  }
-};
-
-// POST: Register a new user
-const createUser = async (req, res) => {
-  const { username, email, password, role } = req.body;
-
-  try {
-    const result = await pool.query(
-      `INSERT INTO "user" (username, email, password, role) 
-       VALUES ($1, $2, $3, $4) RETURNING *`,
-      [username, email, password, role]
-    );
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    console.error("Error creating user:", err);
-    res.status(500).send("Error creating user");
-  }
-};
-
-module.exports = { getUsers, createUser };
-*/

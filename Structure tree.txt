@@ -24,11 +24,19 @@ Pulse-Point-Doctor-Patient-Management-System/
         ├── InputField.js
         ├── LoginForm.js
         ├── ProtectedRoute.js
+        ├── WelcomePage/
+        │   ├── PulsePointLogo.css
+        │   ├── PulsePointLogo.js
+        │   ├── WelcomePage.css
+        │   └── WelcomePage.js
         ├── shared/
         │   ├── ErrorBoundary.js
         │   ├── InputField.js
         │   ├── Modal.js
-        │   └── NotificationDropdown.js
+        │   ├── NotificationDropdown.js
+        │   └── PulsePointBrand/
+        │       ├── PulsePointBrand.css
+        │       └── PulsePointBrand.js
         ├── PatientDashboard/
         │   ├── GraphSection.js
         │   ├── GraphTabs.js
@@ -69,7 +77,6 @@ Pulse-Point-Doctor-Patient-Management-System/
         │   │   ├── DocumentUploadForm.js
         │   │   └── MedicalDocumentsModal.js
         │   ├── hooks/
-        │   │   ├── useDoctors.js
         │   │   ├── useHealthLogs.js
         │   │   └── usePatientData.js
         │   ├── HealthArticlesView/
@@ -91,41 +98,34 @@ Pulse-Point-Doctor-Patient-Management-System/
         │   │   ├── DoctorsPage.js
         │   │   ├── DoctorsPagination.js
         │   │   └── index.js
-        │   ├── DepartmentsSection/
-        │   │   ├── DepartmentsFilters.js
-        │   │   └── DepartmentsPage.js
-        │   └── DashboardContent/
-        │       ├── AppointmentsView.js
-        │       ├── ArticlesView.js
-        │       ├── DashboardView.js
-        │       └── DepartmentsView.js
+        │   └── DepartmentsSection/
+        │       ├── DepartmentsFilters.js
+        │       └── DepartmentsPage.js
         ├── DoctorDashboard/
         │   ├── AppointmentStatsSection.js
         │   ├── DoctorDashboard.css
         │   ├── DoctorDashboard.js
         │   ├── DoctorProfileCard.js
-        │   ├── HealthInsightsWidget.js
         │   ├── MedicalInsightsSection.js
         │   ├── PatientAnalyticsSection.js
-        │   ├── QuickStatsWidget.js
         │   ├── RatingsSection.js
-        │   ├── RevenueSection.js
         │   ├── ScheduleModal.js
         │   ├── ScheduleSection.js
         │   ├── UpcomingAppointmentsSection.js
+        │   ├── zzzUnnecessaryHealthInsightsWidget.js
+        │   ├── zzzUnnecessaryQuickStatsWidget.js
+        │   ├── zzzUnnecessaryRevenueSection.js
         │   ├── utils/
         │   │   └── dateUtils.js
         │   ├── shared/
-        │   │   ├── DoctorNavigation.js
-        │   │   └── DoctorLogoBrand/
-        │   │       ├── PulsePointBrand.css
-        │   │       └── PulsePointBrand.js
+        │   │   └── DoctorNavigation.js
         │   ├── RevenuePage/
         │   │   ├── DoctorRevenuePage.js
         │   │   ├── hooks/
         │   │   │   └── useRevenueData.js
         │   │   └── components/
         │   │       ├── DateRangeFilter.js
+        │   │       ├── DynamicTotalCard.js
         │   │       ├── RevenueChart.js
         │   │       ├── RevenueStatsCards.js
         │   │       └── uselessRevenueBreakdown.js

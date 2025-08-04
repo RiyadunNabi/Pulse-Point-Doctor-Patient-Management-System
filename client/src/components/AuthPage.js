@@ -53,17 +53,12 @@ function AuthPage({ onLogin }) {
 
   // Login Handler
   // In your AuthPage.js, update the handleLogin function:
-
   async function handleLogin(e) {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      // const res = await axios.post('http://localhost:5000/api/auth/login', {
-      //   email: loginEmail,
-      //   password: loginPassword
-      // });
       const res = await axios.post('/api/auth/login', {
         email: loginEmail,
         password: loginPassword,
@@ -104,12 +99,6 @@ function AuthPage({ onLogin }) {
     setLoading(true);
 
     try {
-      // await axios.post('http://localhost:5000/api/users', {
-      //   username: regName,
-      //   email: regEmail,
-      //   password: regPassword,
-      //   role: mode
-      // });
       await axios.post('/api/users', {
         username: regName,
         email: regEmail,
