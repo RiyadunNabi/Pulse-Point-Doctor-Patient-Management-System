@@ -54,32 +54,36 @@ function AuthPage({ onLogin }) {
   // Login Handler
   // In your AuthPage.js, update the handleLogin function:
 
-async function handleLogin(e) {
-  e.preventDefault();
-  setError('');
-  setLoading(true);
+  async function handleLogin(e) {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
-  try {
-    const res = await axios.post('http://localhost:5000/api/auth/login', {
-      email: loginEmail,
-      password: loginPassword
-    });
+    try {
+      // const res = await axios.post('http://localhost:5000/api/auth/login', {
+      //   email: loginEmail,
+      //   password: loginPassword
+      // });
+      const res = await axios.post('/api/auth/login', {
+        email: loginEmail,
+        password: loginPassword,
+      });
 
-    if (res.data.user.role !== mode) {
-      setError(`This is a ${res.data.user.role} account. Please use the correct login mode.`);
-      setLoading(false);
-      return;
+      if (res.data.user.role !== mode) {
+        setError(`This is a ${res.data.user.role} account. Please use the correct login mode.`);
+        setLoading(false);
+        return;
+      }
+
+      onLogin(res.data.token, res.data.user);
+
+      // The redirect will happen automatically via the routing logic in App.js
+
+    } catch (err) {
+      setError('Invalid credentials. Please check your email and password.');
     }
-
-    onLogin(res.data.token, res.data.user);
-    
-    // The redirect will happen automatically via the routing logic in App.js
-    
-  } catch (err) {
-    setError('Invalid credentials. Please check your email and password.');
+    setLoading(false);
   }
-  setLoading(false);
-}
 
 
   // Register Handler
@@ -100,12 +104,19 @@ async function handleLogin(e) {
     setLoading(true);
 
     try {
-      await axios.post('http://localhost:5000/api/users', {
+      // await axios.post('http://localhost:5000/api/users', {
+      //   username: regName,
+      //   email: regEmail,
+      //   password: regPassword,
+      //   role: mode
+      // });
+      await axios.post('/api/users', {
         username: regName,
         email: regEmail,
         password: regPassword,
         role: mode
       });
+
 
       setLoginEmail(regEmail);
       setLoginPassword(regPassword);
@@ -118,18 +129,18 @@ async function handleLogin(e) {
   }
 
   return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-400 via-blue-300 to-cyan-300 p-8 relative overflow-hidden">
-  {/* Background shapes: visually interesting but not blocking gradient */}
-  <div className="absolute inset-0 pointer-events-none">
-    <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-r from-blue-400/30 to-cyan-400/30 rounded-full blur-3xl"></div>
-    <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-sky-400/20 to-blue-300/20 rounded-full blur-3xl"></div>
-    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-r from-cyan-300/20 to-sky-300/20 rounded-full blur-3xl"></div>
-  </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-400 via-blue-300 to-cyan-300 p-8 relative overflow-hidden">
+      {/* Background shapes: visually interesting but not blocking gradient */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-r from-blue-400/30 to-cyan-400/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-sky-400/20 to-blue-300/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-r from-cyan-300/20 to-sky-300/20 rounded-full blur-3xl"></div>
+      </div>
 
       {/* Main Container - Landscape Layout */}
       <div className="w-full max-w-6xl bg-white/95 backdrop-blur-sm shadow-2xl rounded-3xl overflow-hidden border border-white/50 relative z-10">
         <div className="flex min-h-[600px]">
-          
+
           {/* Left Side - Logo & Branding */}
           <div className="flex-1 bg-gradient-to-br from-sky-500 via-blue-600 to-cyan-600 p-12 flex flex-col justify-center items-center text-white relative overflow-hidden">
             {/* Background Pattern */}
@@ -138,7 +149,7 @@ async function handleLogin(e) {
               <div className="absolute bottom-20 right-10 w-24 h-24 border border-white/20 rounded-full"></div>
               <div className="absolute top-1/2 left-1/4 w-16 h-16 border border-white/20 rounded-full"></div>
             </div>
-            
+
             <div className="relative z-10 text-center">
               <div className="flex justify-center mb-8">
                 <PulsePointLogo className="w-28 h-28" />
@@ -173,7 +184,7 @@ async function handleLogin(e) {
 
           {/* Right Side - Authentication Forms */}
           <div className="flex-1 p-12 flex flex-col justify-center bg-gradient-to-br from-white/95 to-blue-50/30">
-            
+
             {/* Role Selection */}
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-slate-800 mb-6 text-center">
@@ -316,7 +327,7 @@ async function handleLogin(e) {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
-                     Username
+                      Username
                     </label>
                     <InputField
                       type="text"

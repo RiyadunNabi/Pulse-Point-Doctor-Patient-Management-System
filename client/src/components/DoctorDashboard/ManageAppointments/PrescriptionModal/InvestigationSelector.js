@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Plus, Minus, Stethoscope } from 'lucide-react';
+import axios from '../../../../utils/axiosConfig';
 
 const InvestigationSelector = ({ investigations, onChange }) => {
     const [availableInvestigations, setAvailableInvestigations] = useState([]);
@@ -10,30 +11,16 @@ const InvestigationSelector = ({ investigations, onChange }) => {
     useEffect(() => {
         const fetchInvestigations = async () => {
             try {
-                // 1. Get the auth token
-                const token = localStorage.getItem('token');
-                if (!token) {
-                    setError("Authentication token not found in local storage.");
-                    setLoading(false);
-                    return;
-                }
-
-                const response = await fetch('http://localhost:5000/api/investigations', {
-                    headers: {
-                        // 2. Add the Authorization header
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
+                const response = await axios.get('/api/investigations');
 
                 // 3. Check for a successful response
-                if (!response.ok) {
-                   const errorText = await response.text();
-                    console.error("Failed response text:", errorText);
-                    throw new Error(`Failed to fetch investigations. Status: ${response.status}. See console for server response.`);
-                }
+                // if (!response.ok) {
+                //    const errorText = await response.text();
+                //     console.error("Failed response text:", errorText);
+                //     throw new Error(`Failed to fetch investigations. Status: ${response.status}. See console for server response.`);
+                // }
 
-                const data = await response.json();
+                const data = await response.data;
                 setAvailableInvestigations(data);
                 setError(null);
             } catch (err) {
