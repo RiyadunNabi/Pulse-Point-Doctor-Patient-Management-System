@@ -13,7 +13,6 @@ import {
 import EditArticleModal from './EditArticleModal';
 import axios from 'axios';
 import ArticleImageDisplay from './ArticleImageDisplay';
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const ArticleCard = ({ article, isOwner, onArticleUpdated }) => {
     const [showEditModal, setShowEditModal] = useState(false);
@@ -155,7 +154,8 @@ const ArticleCard = ({ article, isOwner, onArticleUpdated }) => {
         <div className="relative group">
             <img 
                 // src={`http://localhost:5000/uploads/article_images/${safeArticle.image_path.replace(/^.*[\\/]/, '')}`}
-                src={`${API_BASE_URL}/uploads/article_images/${safeArticle.image_path.replace(/^.*[\\/]/, '')}`}
+                src={`${axios.defaults.baseURL}/uploads/article_images/${safeArticle.image_path}`}
+
                 alt={safeArticle.title}
                 className="w-full max-h-96 object-cover rounded-lg shadow-sm cursor-pointer transition-transform duration-300 hover:scale-[1.02]"
                 onError={(e) => {
