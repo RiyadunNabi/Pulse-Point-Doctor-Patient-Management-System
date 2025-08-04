@@ -69,7 +69,7 @@ const createUser = async (req, res) => {
             // }
 
             let department_id;
-            if (deptRes.rows.length === 0) {
+            if (defaultDeptResult.rows.length === 0) {
                 const newDept = await client.query(
                     `INSERT INTO department (department_name, description)
                     VALUES ($1, $2) RETURNING department_id`,
@@ -77,7 +77,7 @@ const createUser = async (req, res) => {
                 );
                 department_id = newDept.rows[0].department_id;
             } else {
-                department_id = deptRes.rows[0].department_id;
+                department_id = defaultDeptResult.rows[0].department_id;
             }
 
 
