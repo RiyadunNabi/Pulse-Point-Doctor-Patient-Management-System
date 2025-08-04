@@ -84,6 +84,16 @@ app.get("/", async (req, res) => {
   }
 });
 
+//=========================================for render testing==========================================
+// This is a test route to check if the server is running
+app.get("/api", (req, res) => {
+  res.json({ message: "API is running!" });
+});
+app.get("/api/auth/test", (req, res) => {
+  res.json({ message: "Auth test route works!" });
+});
+//====================================================================================================
+
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
