@@ -88,7 +88,7 @@ const createUser = async (req, res) => {
 
             const doctorResult = await client.query(doctorQuery, [
                 newUser.user_id,
-                defaultDeptResult.rows[0].department_id,
+                department_id,
                 'Doctor', // Default first name
                 '', // last_name - can be updated later
                 'male' // Default gender - required field
