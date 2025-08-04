@@ -437,7 +437,7 @@ const WelcomePage = () => {
                             <div className="developer-details">
                                 <div className="detail-item">
                                     <span className="detail-label">Roll No:</span>
-                                    <span>2205076</span>
+                                    {/* <span>2205076</span> */}
                                 </div>
                                 <div className="detail-item">
                                     <GraduationCap className="w-4 h-4" />
@@ -451,7 +451,7 @@ const WelcomePage = () => {
                             <div className="developer-details">
                                 <div className="detail-item">
                                     <span className="detail-label">Roll No:</span>
-                                    <span>2205084</span>
+                                    {/* <span>2205084</span> */}
                                 </div>
                                 <div className="detail-item">
                                     <GraduationCap className="w-4 h-4" />
