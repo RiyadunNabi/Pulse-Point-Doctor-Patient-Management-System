@@ -5,7 +5,7 @@ import InputField from '../../shared/InputField';
 
 function ProfileForm({ formData, onChange }) {
   const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-  const genders = ['Male', 'Female'];
+  const genders = ['male', 'female'];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
